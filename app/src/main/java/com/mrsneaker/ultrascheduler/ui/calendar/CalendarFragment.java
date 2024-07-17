@@ -37,9 +37,8 @@ public class CalendarFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @return A new instance of fragment HomeFragment.
+     * @return A new instance of fragment CalendarFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static CalendarFragment newInstance() {
         CalendarFragment fragment = new CalendarFragment();
         Bundle args = new Bundle();
@@ -64,7 +63,7 @@ public class CalendarFragment extends Fragment {
 
         RecyclerView recyclerView = binding.calendarRecyclerView;
         recyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
-        recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate)));
+        recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
 
         initNextWeekBtn();
         initLastWeekBtn();
@@ -79,7 +78,7 @@ public class CalendarFragment extends Fragment {
             public void onClick(View view) {
                 RecyclerView recyclerView = binding.calendarRecyclerView;
                 LocalDate currentDate = DateUtils.getNextWeek();
-                recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate)));
+                recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
                 updateMonthYearTitle();
             }
         });
@@ -92,7 +91,7 @@ public class CalendarFragment extends Fragment {
             public void onClick(View view) {
                 RecyclerView recyclerView = binding.calendarRecyclerView;
                 LocalDate currentDate = DateUtils.getLastWeek();
-                recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate)));
+                recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
                 updateMonthYearTitle();
             }
         });
@@ -103,7 +102,7 @@ public class CalendarFragment extends Fragment {
         String prevMonthYString = (String) monthYearTitle.getText();
         String newMonthYString = monthYearFromDate(DateUtils.getSelectedDate());
         if(!prevMonthYString.equals(newMonthYString)) {
-           monthYearTitle.setText(newMonthYString);
+            monthYearTitle.setText(newMonthYString);
         }
     }
 }

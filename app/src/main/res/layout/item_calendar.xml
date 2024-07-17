@@ -4,10 +4,22 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/calendarItemTextView"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/calendarItemCardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:padding="10dp"/>
+        android:layout_margin="5dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:backgroundTint="@color/calendar_item_color"
+        android:elevation="4dp">
+
+        <TextView
+            android:id="@+id/calendarItemTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:padding="10dp"/>
+    </androidx.cardview.widget.CardView>
 </LinearLayout>
