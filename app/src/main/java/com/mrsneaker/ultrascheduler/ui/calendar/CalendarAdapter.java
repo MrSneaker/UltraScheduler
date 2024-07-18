@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.mrsneaker.ultrascheduler.R;
 import com.mrsneaker.ultrascheduler.databinding.ItemCalendarBinding;
+import com.mrsneaker.ultrascheduler.utils.DateUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -59,7 +60,8 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
                 @Override
                 public void onClick(View view) {
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    DayFragment dayFragment = DayFragment.newInstance();
+                    String dateString = String.format(date.getDayOfWeek().toString() + " %d " + date.getMonth().toString(), date.getDayOfMonth());
+                    DayFragment dayFragment = DayFragment.newInstance(dateString);
                     fragmentTransaction.add(R.id.fragment_container_view, dayFragment);
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();
