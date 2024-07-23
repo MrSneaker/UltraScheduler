@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="130dp"
+    android:minWidth="130dp"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:backgroundTint="@color/popup_background"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp">
+
+    <RadioGroup
+        android:id="@+id/popupEventRadioGrp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center_horizontal"
+        android:checkedButton="@+id/taskOpt">
+
+        <RadioButton
+            android:id="@+id/eventOpt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/event"
+            android:textColor="@color/white"
+            app:buttonTint="@color/button_blue"
+            />
+        <RadioButton
+            android:id="@+id/taskOpt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:buttonTint="@color/button_blue"
+            android:textColor="@color/white"
+            android:text="@string/task"/>
+
+    </RadioGroup>
+
+    <Button
+            android:id="@+id/okBtnPopUpEvent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/button_blue"
+            android:textColor="@color/white"
+            android:text="@string/ok"
+            android:layout_marginTop="95dp"
+            android:layout_gravity="center_horizontal"/>
+
+</androidx.cardview.widget.CardView>

@@ -14,4 +14,13 @@
     <string name="new_event">New Event</string>
     <string name="month_year">MONTH + YEAR</string>
     <string name="actual_day">ACTUAL DAY</string>
+    <string name="event">Event</string>
+    <string name="task">Task</string>
+    <string name="ok">OK</string>
+    <string name="add_a_title">Add a title</string>
+    <string name="all_day">All day</string>
+    <string name="hour_form_display">HH::MM</string>
+    <string name="month_form_display">DD MONTH YYYY</string>
+    <string name="write_a_description">Write a description</string>
+    <string name="save">Save</string>
 </resources>

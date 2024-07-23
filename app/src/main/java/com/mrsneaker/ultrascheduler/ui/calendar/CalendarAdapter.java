@@ -14,14 +14,15 @@ import com.mrsneaker.ultrascheduler.databinding.ItemCalendarBinding;
 import com.mrsneaker.ultrascheduler.utils.DateUtils;
 
 import java.time.LocalDate;
+import java.util.Calendar;
 import java.util.List;
 
 public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHolder> {
 
-    private final List<LocalDate> data;
+    private final List<Calendar> data;
     private final FragmentManager fragmentManager;
 
-    public CalendarAdapter(List<LocalDate> data, FragmentManager fragmentManager) {
+    public CalendarAdapter(List<Calendar> data, FragmentManager fragmentManager) {
         this.data = data;
         this.fragmentManager = fragmentManager;
     }
@@ -35,7 +36,7 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        LocalDate item = data.get(position);
+        Calendar item = data.get(position);
         holder.bind(item, fragmentManager);
     }
 
@@ -52,16 +53,15 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
             this.binding = binding;
         }
 
-        public void bind(LocalDate date, FragmentManager fragmentManager) {
-            int dateNum  = date.getDayOfMonth();
+        public void bind(Calendar date, FragmentManager fragmentManager) {
+            int dateNum  = date.get(Calendar.DAY_OF_MONTH);
             binding.calendarItemTextView.setText(String.format("%d", dateNum));
             CardView dayCard = binding.calendarItemCardView;
             dayCard.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    String dateString = String.format(date.getDayOfWeek().toString() + " %d " + date.getMonth().toString(), date.getDayOfMonth());
-                    DayFragment dayFragment = DayFragment.newInstance(dateString);
+                    DayFragment dayFragment = DayFragment.newInstance(date);
                     fragmentTransaction.add(R.id.fragment_container_view, dayFragment);
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();

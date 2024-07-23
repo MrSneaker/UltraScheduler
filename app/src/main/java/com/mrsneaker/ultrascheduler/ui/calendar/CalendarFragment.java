@@ -19,6 +19,7 @@ import com.mrsneaker.ultrascheduler.databinding.FragmentCalendarBinding;
 import com.mrsneaker.ultrascheduler.utils.DateUtils;
 
 import java.time.LocalDate;
+import java.util.Calendar;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -28,6 +29,7 @@ import java.time.LocalDate;
 public class CalendarFragment extends Fragment {
 
     private FragmentCalendarBinding binding;
+
 
     public CalendarFragment() {
         // Required empty public constructor
@@ -56,7 +58,7 @@ public class CalendarFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         binding = FragmentCalendarBinding.inflate(inflater, container, false);
-        LocalDate currentDate = LocalDate.now();
+        Calendar currentDate = Calendar.getInstance();
         DateUtils.setSelectedDate(currentDate);
 
         binding.monthYearTV.setText(monthYearFromDate(currentDate));
@@ -77,7 +79,7 @@ public class CalendarFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 RecyclerView recyclerView = binding.calendarRecyclerView;
-                LocalDate currentDate = DateUtils.getNextWeek();
+                Calendar currentDate = (Calendar) DateUtils.getNextWeek().clone();
                 recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
                 updateMonthYearTitle();
             }
@@ -90,7 +92,7 @@ public class CalendarFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 RecyclerView recyclerView = binding.calendarRecyclerView;
-                LocalDate currentDate = DateUtils.getLastWeek();
+                Calendar currentDate = (Calendar) DateUtils.getLastWeek().clone();
                 recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
                 updateMonthYearTitle();
             }

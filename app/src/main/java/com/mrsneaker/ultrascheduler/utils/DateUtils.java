@@ -1,99 +1,138 @@
 package com.mrsneaker.ultrascheduler.utils;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
+import android.util.Log;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 public class DateUtils {
-    private static LocalDate selectedDate;
+    private static Calendar selectedDate = Calendar.getInstance();
+    // Array to map Calendar.DAY_OF_WEEK constants to day names
+    private static final List<String> DAYS_OF_WEEK = Arrays.asList(
+            "NULL", // Calendar.DAY_OF_WEEK starts at 1
+            "Sun.",
+            "Mon.",
+            "Tue.",
+            "Wed.",
+            "Thu.",
+            "Fri.",
+            "Sat."
+    );
 
-    public static String formattedDate(LocalDate date)
-    {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy");
-        return date.format(formatter);
+    // Array to map Calendar.MONTH constants to month names
+    private static final List<String> MONTHS_OF_YEAR = Arrays.asList(
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+    );
+
+    public static String formattedDate(Calendar date) {
+        DateFormat formatter = new SimpleDateFormat("dd MMMM yyyy");
+        return formatter.format(date.getTime());
     }
 
-    public static String formattedTime(LocalTime time)
-    {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm:ss a");
-        return time.format(formatter);
+    public static String formattedTime(Calendar time) {
+        DateFormat formatter = new SimpleDateFormat("hh:mm:ss a");
+        return formatter.format(time.getTime());
     }
 
-    public static String monthYearFromDate(LocalDate date)
-    {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM yyyy");
-        return date.format(formatter);
+    public static String monthYearFromDate(Calendar date) {
+        DateFormat formatter = new SimpleDateFormat("MMMM yyyy");
+        return formatter.format(date.getTime());
     }
 
-    public static ArrayList<LocalDate> daysInMonthArray(LocalDate date)
-    {
-        ArrayList<LocalDate> daysInMonthArray = new ArrayList<>();
-        YearMonth yearMonth = YearMonth.from(date);
+    public static ArrayList<Calendar> daysInMonthArray(Calendar date) {
+        ArrayList<Calendar> daysInMonthArray = new ArrayList<>();
+        Calendar yearMonth = (Calendar) date.clone();
 
-        int daysInMonth = yearMonth.lengthOfMonth();
+        int daysInMonth = yearMonth.getActualMaximum(Calendar.DAY_OF_MONTH);
+        Calendar firstOfMonth = (Calendar) selectedDate.clone();
+        firstOfMonth.set(Calendar.DAY_OF_MONTH, 1);
+        int dayOfWeek = firstOfMonth.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY;
 
-        LocalDate firstOfMonth = selectedDate.withDayOfMonth(1);
-        int dayOfWeek = firstOfMonth.getDayOfWeek().getValue();
-
-        for(int i = 1; i <= 42; i++)
-        {
-            if(i <= dayOfWeek || i > daysInMonth + dayOfWeek)
+        for (int i = 1; i <= 42; i++) {
+            if (i <= dayOfWeek || i > daysInMonth + dayOfWeek) {
                 daysInMonthArray.add(null);
-            else
-                daysInMonthArray.add(LocalDate.of(selectedDate.getYear(),selectedDate.getMonth(),i - dayOfWeek));
+            } else {
+                Calendar day = new GregorianCalendar(selectedDate.get(Calendar.YEAR), selectedDate.get(Calendar.MONTH), i - dayOfWeek);
+                daysInMonthArray.add(day);
+            }
         }
-        return  daysInMonthArray;
+        return daysInMonthArray;
     }
 
-    public static ArrayList<LocalDate> daysInWeekArray(LocalDate selectedDate)
-    {
-        ArrayList<LocalDate> days = new ArrayList<>();
-        LocalDate current = mondayForDate(selectedDate);
+    public static ArrayList<Calendar> daysInWeekArray(Calendar selectedDate) {
+        ArrayList<Calendar> days = new ArrayList<>();
+        Calendar current = mondayForDate(selectedDate);
+        Log.d("DateUtils", current.toString());
         assert current != null;
-        LocalDate endDate = current.plusWeeks(1);
+        Calendar endDate = (Calendar) current.clone();
+        endDate.add(Calendar.WEEK_OF_YEAR, 1);
 
-        while (current.isBefore(endDate))
-        {
-            days.add(current);
-            current = current.plusDays(1);
+        while (current.before(endDate)) {
+            days.add((Calendar) current.clone());
+            current.add(Calendar.DAY_OF_MONTH, 1);
         }
         return days;
     }
 
-    private static LocalDate mondayForDate(LocalDate current)
-    {
-        LocalDate oneWeekAgo = current.minusWeeks(1);
+    private static Calendar mondayForDate(Calendar current) {
+        Calendar oneWeekAgo = (Calendar) current.clone();
+        oneWeekAgo.add(Calendar.WEEK_OF_YEAR, -1);
 
-        while (current.isAfter(oneWeekAgo))
-        {
-            if(current.getDayOfWeek() == DayOfWeek.MONDAY)
+        while (current.after(oneWeekAgo)) {
+            if (current.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
                 return current;
-
-            current = current.minusDays(1);
+            }
+            current.add(Calendar.DAY_OF_MONTH, -1);
         }
-
         return null;
     }
 
-    public static LocalDate getNextWeek() {
-        selectedDate = selectedDate.plusWeeks(1);
+    public static Calendar getNextWeek() {
+        Log.d("DateUtils", "actual" + String.valueOf(selectedDate.get(Calendar.WEEK_OF_YEAR)));
+        selectedDate.add(Calendar.WEEK_OF_YEAR, 1);
+        Log.d("DateUtils", "new" + String.valueOf(selectedDate.get(Calendar.WEEK_OF_YEAR)));
         return selectedDate;
     }
 
-    public static LocalDate getLastWeek() {
-        selectedDate = selectedDate.minusWeeks(1);
+    public static Calendar getLastWeek() {
+        Log.d("DateUtils", String.valueOf(selectedDate.get(Calendar.WEEK_OF_YEAR)));
+        selectedDate.add(Calendar.WEEK_OF_YEAR, -1);
+        Log.d("DateUtils", "OUI ON EST LA");
+        Log.d("DateUtils", String.valueOf(selectedDate.get(Calendar.WEEK_OF_YEAR)));
         return selectedDate;
     }
 
-
-    public static LocalDate getSelectedDate() {
+    public static Calendar getSelectedDate() {
         return selectedDate;
     }
 
-    public static void setSelectedDate(LocalDate selectedDate) {
-        DateUtils.selectedDate = selectedDate;
+    public static void setSelectedDate(Calendar selectedDate) {
+        DateUtils.selectedDate = (Calendar) selectedDate.clone();
+    }
+
+    public static String getDayOfWeekName(Calendar date) {
+        int dayOfWeek = date.get(Calendar.DAY_OF_WEEK);
+        return DAYS_OF_WEEK.get(dayOfWeek);
+    }
+
+    public static String getMonthName(Calendar date) {
+        int month = date.get(Calendar.MONTH);
+        return MONTHS_OF_YEAR.get(month);
     }
 }
