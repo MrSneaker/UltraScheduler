@@ -9,12 +9,28 @@
     android:layout_margin="4dp"
     android:clickable="true"
     android:focusable="true"
+    android:backgroundTint="@color/default_event_tint"
     android:padding="8dp">
 
-    <TextView
-        android:id="@+id/eventTextView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:paddingTop="4dp" />
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/eventSubject"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:paddingTop="4dp" />
+
+        <TextView
+            android:id="@+id/eventDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:paddingTop="4dp" />
+
+    </LinearLayout>
+
 </androidx.cardview.widget.CardView>

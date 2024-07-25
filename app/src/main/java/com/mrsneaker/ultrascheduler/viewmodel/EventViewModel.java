@@ -23,9 +23,11 @@ public class EventViewModel extends ViewModel {
     private DetailedEventDao detDao;
     private TaskEventDao taskDao;
     private final MutableLiveData<List<GenericEvent>> allEventList;
+    private final MutableLiveData<GenericEvent> currentEvent;
 
     public EventViewModel() {
         this.allEventList = new MutableLiveData<>();
+        this.currentEvent = new MutableLiveData<>();
         AppDatabase db = MainActivity.getDatabase();
         detDao = db.detailedEventDao();
         taskDao = db.taskEventDao();
@@ -34,6 +36,11 @@ public class EventViewModel extends ViewModel {
 
     public LiveData<List<GenericEvent>> getAllEventList() {
         return allEventList;
+    }
+
+    public LiveData<GenericEvent> getDetailedEventById(long id) {
+        loadDetailedEventById(id);
+        return currentEvent;
     }
 
     public void insertDetailedEvent(DetailedEvent e) {
@@ -48,6 +55,13 @@ public class EventViewModel extends ViewModel {
             taskDao.insert(e);
             loadAllEvents();
         }).start();
+    }
+
+    private void loadDetailedEventById(long id) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            GenericEvent res = detDao.getDetailedEventById(id);
+            currentEvent.postValue(res);
+        });
     }
 
     private void loadAllEvents() {

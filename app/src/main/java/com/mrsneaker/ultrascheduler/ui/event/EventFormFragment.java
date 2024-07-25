@@ -4,14 +4,18 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.room.Room;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.android.material.textfield.TextInputEditText;
 import com.mrsneaker.ultrascheduler.database.AppDatabase;
 import com.mrsneaker.ultrascheduler.databinding.FragmentEventFormBinding;
 import com.mrsneaker.ultrascheduler.injection.ViewModelFactory;
@@ -95,8 +99,13 @@ public class EventFormFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 //TODO: make the difference between DetailEvent & TaskEvent
-                DetailedEvent detailedEvent = new DetailedEvent("New event", startCal,endCal,"a desc", isAllDay());
+                EditText subject = binding.eventSubject;
+                TextInputEditText desc = binding.eventDescriptionForm;
+                DetailedEvent detailedEvent = new DetailedEvent(subject.getText().toString(), startCal, endCal, Objects.requireNonNull(desc.getText()).toString(), isAllDay());
                 evm.insertDetailedEvent(detailedEvent);
+
+                FragmentManager fragmentManager = getParentFragmentManager();
+                fragmentManager.popBackStack();
             }
         });
     }

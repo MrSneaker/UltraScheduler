@@ -2,6 +2,7 @@ package com.mrsneaker.ultrascheduler.ui.calendar;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -31,7 +32,10 @@ import android.widget.TextView;
 import com.mrsneaker.ultrascheduler.R;
 import com.mrsneaker.ultrascheduler.databinding.FragmentDayBinding;
 import com.mrsneaker.ultrascheduler.injection.ViewModelFactory;
+import com.mrsneaker.ultrascheduler.model.event.DetailedEvent;
 import com.mrsneaker.ultrascheduler.model.event.GenericEvent;
+import com.mrsneaker.ultrascheduler.model.event.TaskEvent;
+import com.mrsneaker.ultrascheduler.ui.event.EventCardFragment;
 import com.mrsneaker.ultrascheduler.ui.event.EventFormFragment;
 import com.mrsneaker.ultrascheduler.utils.DateUtils;
 import com.mrsneaker.ultrascheduler.viewmodel.EventViewModel;
@@ -123,7 +127,7 @@ public class DayFragment extends Fragment {
         return res;
     }
 
-    private void addEventsToContainer(List<GenericEvent> events, FrameLayout eventsContainer) {
+    private void addEventsToContainer(List<GenericEvent> events, LinearLayout eventsContainer) {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         if(events != null) {
             for (GenericEvent event : events) {
@@ -133,9 +137,19 @@ public class DayFragment extends Fragment {
                         continue;
                     }
                 }
+
                 CardView eventCard = (CardView) inflater.inflate(R.layout.item_event, eventsContainer, false);
-                TextView eventTextView = eventCard.findViewById(R.id.eventTextView);
-                eventTextView.setText(event.getSubject());
+                TextView eventSubTextView = eventCard.findViewById(R.id.eventSubject);
+                eventSubTextView.setText(event.getSubject());
+
+                TextView eventDateTextView = eventCard.findViewById(R.id.eventDate);
+                eventDateTextView.setText(getEventDateString(event));
+
+                if (event instanceof DetailedEvent) {
+                    eventCard.setTag(((DetailedEvent) event).getId());
+                } else if (event instanceof TaskEvent) {
+                    eventCard.setTag(((TaskEvent) event).getId());
+                }
 
                 int startHour = event.getStartTime().get(Calendar.HOUR_OF_DAY);
                 int startMinute = event.getStartTime().get(Calendar.MINUTE);
@@ -149,27 +163,34 @@ public class DayFragment extends Fragment {
                 int eventHeight = (durationInMinutes * hourHeight) / 60;
                 int topMargin = (startHour * hourHeight) + (startMinute * hourHeight) / 60;
 
-                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
                         eventHeight // Adjust height based on duration
                 );
                 params.topMargin = topMargin;
 
                 eventCard.setLayoutParams(params);
-                initCardAction(eventCard);
+                initCardClick(eventCard);
                 eventsContainer.addView(eventCard);
             }
-        } else {
-            Log.d("TEST", "ALOOO");
         }
     }
 
-    private void initCardAction(CardView eventCard) {
+    private void initCardClick(CardView eventCard) {
         eventCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // TODO: DISPLAY EVENT INFO  AND ALLOW MODIFICATION
-                Log.d("EventCardClick", "CLICK");
+
+                long eventId = (long) view.getTag();
+
+                ColorStateList cardColor = eventCard.getBackgroundTintList();
+                FragmentManager fragmentManager = getParentFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                EventCardFragment eventCardFragment = EventCardFragment.newInstance(cardColor, eventId);
+                fragmentTransaction.add(R.id.fragment_container_view, eventCardFragment);
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
             }
         });
     }
@@ -181,7 +202,7 @@ public class DayFragment extends Fragment {
             public void onClick(View view) {
                 // inflate the layout of the popup window
                 LayoutInflater inflater = (LayoutInflater)
-                        getContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+                        requireContext().getSystemService(LAYOUT_INFLATER_SERVICE);
                 View popupView = inflater.inflate(R.layout.event_type_popup_selector, null);
 
                 // create the popup window
@@ -249,6 +270,34 @@ public class DayFragment extends Fragment {
                 addEventsToContainer(events, binding.eventsContainer);
             }
         });
+    }
+
+    private String getEventDateString(GenericEvent event) {
+        Calendar startDate = event.getStartTime();
+        Calendar endDate = event.getEndTime();
+
+        Integer startDayOfMonth = startDate.get(Calendar.DAY_OF_MONTH);
+        String startMonth = DateUtils.getMonthName(startDate);
+        Integer startYear = startDate.get(Calendar.YEAR);
+        Integer startHour = startDate.get(Calendar.HOUR_OF_DAY);
+        Integer startMin = startDate.get(Calendar.MINUTE);
+
+        Integer endDayOfMonth = endDate.get(Calendar.DAY_OF_MONTH);
+        String endMonth = DateUtils.getMonthName(endDate);
+        Integer endYear = endDate.get(Calendar.YEAR);
+        Integer endHour = endDate.get(Calendar.HOUR_OF_DAY);
+        Integer endMin = endDate.get(Calendar.MINUTE);
+
+        String res = String.format("%d " + startMonth + " %d %d:%d - %d " + endMonth + " %d %d:%d",
+                startDayOfMonth,
+                startYear,
+                startHour,
+                startMin,
+                endDayOfMonth,
+                endYear,
+                endHour,
+                endMin);
+        return res;
     }
 
 }

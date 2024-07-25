@@ -14,6 +14,9 @@ public interface DetailedEventDao {
     @Query("SELECT * FROM detailed_event")
     List<DetailedEvent> getAll();
 
+    @Query("SELECT * FROM detailed_event WHERE id= :id")
+    DetailedEvent getDetailedEventById(long id);
+
     @Insert
     void insert(DetailedEvent event);
 

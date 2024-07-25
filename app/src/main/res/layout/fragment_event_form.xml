@@ -9,6 +9,7 @@
     tools:context=".ui.event.EventFormFragment">
 
     <EditText
+        android:id="@+id/eventSubject"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:importantForAutofill="no"
@@ -98,6 +99,7 @@
         android:background="@android:color/darker_gray" />
 
     <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/eventDescriptionForm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/write_a_description"

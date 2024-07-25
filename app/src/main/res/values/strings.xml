@@ -23,4 +23,11 @@
     <string name="month_form_display">DD MONTH YYYY</string>
     <string name="write_a_description">Write a description</string>
     <string name="save">Save</string>
+    <string name="event_subject">EVENT SUBJECT</string>
+    <string name="hour_display_event_view">HH:MM - HH:MM</string>
+    <string name="notificationicon">notificationIcon</string>
+    <string name="more_option_button">more option button</string>
+    <string name="back_arrow">back_arrow</string>
+    <string name="notification_mock">notif1\nnotif2\nnotif3</string>
+    <string name="event_description_mock">desc</string>
 </resources>
