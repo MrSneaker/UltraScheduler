@@ -6,20 +6,31 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.mrsneaker.ultrascheduler.databinding.FragmentCalendarBinding;
+import com.mrsneaker.ultrascheduler.injection.ViewModelFactory;
+import com.mrsneaker.ultrascheduler.model.event.GenericEvent;
 import com.mrsneaker.ultrascheduler.utils.DateUtils;
+import com.mrsneaker.ultrascheduler.viewmodel.EventViewModel;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -29,6 +40,9 @@ import java.util.Calendar;
 public class CalendarFragment extends Fragment {
 
     private FragmentCalendarBinding binding;
+    private EventViewModel evm;
+    private List<GenericEvent> events;
+    private CalendarEventAdapter eventAdapter;
 
 
     public CalendarFragment() {
@@ -51,15 +65,15 @@ public class CalendarFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        evm = new ViewModelProvider(this, ViewModelFactory.getInstance()).get(EventViewModel.class);
+        events = new ArrayList<>();
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         binding = FragmentCalendarBinding.inflate(inflater, container, false);
-        Calendar currentDate = Calendar.getInstance();
-        DateUtils.setSelectedDate(currentDate);
+        Calendar currentDate = DateUtils.getSelectedDate();
 
         binding.monthYearTV.setText(monthYearFromDate(currentDate));
 
@@ -67,10 +81,28 @@ public class CalendarFragment extends Fragment {
         recyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 7));
         recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
 
+        ListView eventList = binding.eventWeekListView;
+        eventAdapter = new CalendarEventAdapter(getContext(), events, getParentFragmentManager());
+        eventList.setAdapter(eventAdapter);
+
+        refreshData();
+
         initNextWeekBtn();
         initLastWeekBtn();
 
         return binding.getRoot();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("CalendarFragment", "onResumeCalendar");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d("CalendarFragment", "Fragment is in onPause state");
     }
 
     private void initNextWeekBtn() {
@@ -82,6 +114,7 @@ public class CalendarFragment extends Fragment {
                 Calendar currentDate = (Calendar) DateUtils.getNextWeek().clone();
                 recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
                 updateMonthYearTitle();
+                evm.loadAllEvents();
             }
         });
     }
@@ -95,6 +128,7 @@ public class CalendarFragment extends Fragment {
                 Calendar currentDate = (Calendar) DateUtils.getLastWeek().clone();
                 recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
                 updateMonthYearTitle();
+                evm.loadAllEvents();
             }
         });
     }
@@ -106,5 +140,31 @@ public class CalendarFragment extends Fragment {
         if(!prevMonthYString.equals(newMonthYString)) {
             monthYearTitle.setText(newMonthYString);
         }
+    }
+
+    private void refreshData() {
+        evm.getAllEventList().observe(getViewLifecycleOwner(), new Observer<List<GenericEvent>>() {
+            @Override
+            public void onChanged(List<GenericEvent> newEvents) {
+                if(!newEvents.isEmpty()) {
+                    List<GenericEvent> filteredEvents = new ArrayList<>();
+
+                    for (GenericEvent event : newEvents) {
+                        if (DateUtils.isInCurrentWeek(event.getStartTime())) {
+                            filteredEvents.add(event);
+                        }
+                    }
+                    filteredEvents.sort(new Comparator<GenericEvent>() {
+                        @Override
+                        public int compare(GenericEvent e1, GenericEvent e2) {
+                            return e1.getStartTime().compareTo(e2.getStartTime());
+                        }
+                    });
+                    events.clear();
+                    events.addAll(filteredEvents);
+                    eventAdapter.notifyDataSetChanged();
+                }
+            }
+        });
     }
 }

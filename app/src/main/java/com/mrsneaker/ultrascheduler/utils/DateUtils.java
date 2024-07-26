@@ -90,6 +90,33 @@ public class DateUtils {
         return days;
     }
 
+     public static boolean isInCurrentWeek(Calendar date) {
+        Calendar startOfWeek = getStartOfWeek(selectedDate);
+        Calendar endOfWeek = getEndOfWeek(selectedDate);
+
+        return date.after(startOfWeek) && date.before(endOfWeek);
+    }
+
+    private static Calendar getStartOfWeek(Calendar date) {
+        Calendar start = (Calendar) date.clone();
+        start.set(Calendar.DAY_OF_WEEK, start.getFirstDayOfWeek());
+        start.set(Calendar.HOUR_OF_DAY, 0);
+        start.set(Calendar.MINUTE, 0);
+        start.set(Calendar.SECOND, 0);
+        start.set(Calendar.MILLISECOND, 0);
+        return start;
+    }
+
+    private static Calendar getEndOfWeek(Calendar date) {
+        Calendar end = (Calendar) date.clone();
+        end.set(Calendar.DAY_OF_WEEK, end.getFirstDayOfWeek() + 6);
+        end.set(Calendar.HOUR_OF_DAY, 23);
+        end.set(Calendar.MINUTE, 59);
+        end.set(Calendar.SECOND, 59);
+        end.set(Calendar.MILLISECOND, 999);
+        return end;
+    }
+
     private static Calendar mondayForDate(Calendar current) {
         Calendar oneWeekAgo = (Calendar) current.clone();
         oneWeekAgo.add(Calendar.WEEK_OF_YEAR, -1);
@@ -104,22 +131,17 @@ public class DateUtils {
     }
 
     public static Calendar getNextWeek() {
-        Log.d("DateUtils", "actual" + String.valueOf(selectedDate.get(Calendar.WEEK_OF_YEAR)));
         selectedDate.add(Calendar.WEEK_OF_YEAR, 1);
-        Log.d("DateUtils", "new" + String.valueOf(selectedDate.get(Calendar.WEEK_OF_YEAR)));
         return selectedDate;
     }
 
     public static Calendar getLastWeek() {
-        Log.d("DateUtils", String.valueOf(selectedDate.get(Calendar.WEEK_OF_YEAR)));
         selectedDate.add(Calendar.WEEK_OF_YEAR, -1);
-        Log.d("DateUtils", "OUI ON EST LA");
-        Log.d("DateUtils", String.valueOf(selectedDate.get(Calendar.WEEK_OF_YEAR)));
         return selectedDate;
     }
 
     public static Calendar getSelectedDate() {
-        return selectedDate;
+        return (Calendar) selectedDate.clone();
     }
 
     public static void setSelectedDate(Calendar selectedDate) {

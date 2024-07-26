@@ -30,7 +30,7 @@ public class ViewModelFactory implements ViewModelProvider.Factory{
     @NotNull
     public <T extends ViewModel>  T create(Class<T> modelClass) {
         if (modelClass.isAssignableFrom(EventViewModel.class)) {
-            return (T) new EventViewModel();
+            return (T) EventViewModel.getInstance();
         }
         throw new IllegalArgumentException("Unknown ViewModel class");
     }

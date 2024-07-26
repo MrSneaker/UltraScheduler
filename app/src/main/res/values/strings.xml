@@ -2,13 +2,13 @@
     <string name="app_name">Ultra Scheduler</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="monday">Monday</string>
-    <string name="tuesday">Tuesday</string>
-    <string name="wednesday">Wednesday</string>
-    <string name="thursday">Thursday</string>
-    <string name="friday">Friday</string>
-    <string name="saturday">Saturday</string>
-    <string name="sunday">Sunday</string>
+    <string name="monday">MON</string>
+    <string name="tuesday">TUE</string>
+    <string name="wednesday">WED</string>
+    <string name="thursday">THUR</string>
+    <string name="friday">FRI</string>
+    <string name="saturday">SAT</string>
+    <string name="sunday">SUN</string>
     <string name="forward"><![CDATA[->]]></string>
     <string name="back"><![CDATA[<-]]></string>
     <string name="new_event">New Event</string>
@@ -30,4 +30,5 @@
     <string name="back_arrow">back_arrow</string>
     <string name="notification_mock">notif1\nnotif2\nnotif3</string>
     <string name="event_description_mock">desc</string>
+    <string name="hour_mocker">hour_mocker</string>
 </resources>

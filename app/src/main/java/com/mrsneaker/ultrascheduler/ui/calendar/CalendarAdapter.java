@@ -62,7 +62,7 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHo
                 public void onClick(View view) {
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                     DayFragment dayFragment = DayFragment.newInstance(date);
-                    fragmentTransaction.add(R.id.fragment_container_view, dayFragment);
+                    fragmentTransaction.replace(R.id.fragment_container_view, dayFragment);
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();
                 }

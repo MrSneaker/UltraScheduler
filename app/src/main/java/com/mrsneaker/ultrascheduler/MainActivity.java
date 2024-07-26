@@ -1,5 +1,6 @@
 package com.mrsneaker.ultrascheduler;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -18,10 +19,12 @@ import java.util.Calendar;
 public class MainActivity extends AppCompatActivity {
 
     private static AppDatabase database;
+    private static Context appContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        appContext = getApplicationContext();
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -29,19 +32,19 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-        database = Room.databaseBuilder(getApplicationContext(),
-                AppDatabase.class, "ultra-scheduler-db")
-                .fallbackToDestructiveMigration() // Optional: handle schema migrations
-                .build();
-
-//        DetailedEventDao detDao = db.detailedEventDao();
-//        new Thread(() -> {
-//            detDao.insert(new DetailedEvent("test", Calendar.getInstance(), Calendar.getInstance(), "lol", false));
-//        }).start();
     }
 
     public static AppDatabase getDatabase() {
+        if (database == null) {
+            synchronized (MainActivity.class) {
+                if (database == null) {
+                    database = Room.databaseBuilder(appContext,
+                AppDatabase.class, "ultra-scheduler-db")
+                .fallbackToDestructiveMigration() // Optional: handle schema migrations
+                .build();
+                }
+            }
+        }
         return database;
     }
 }

@@ -14,8 +14,10 @@ import com.mrsneaker.ultrascheduler.model.dao.TaskEventDao;
 import com.mrsneaker.ultrascheduler.model.event.DetailedEvent;
 import com.mrsneaker.ultrascheduler.model.event.GenericEvent;
 import com.mrsneaker.ultrascheduler.model.event.TaskEvent;
+import com.mrsneaker.ultrascheduler.utils.DateUtils;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -24,14 +26,22 @@ public class EventViewModel extends ViewModel {
     private TaskEventDao taskDao;
     private final MutableLiveData<List<GenericEvent>> allEventList;
     private final MutableLiveData<GenericEvent> currentEvent;
+    private static EventViewModel evm;
 
-    public EventViewModel() {
+    private EventViewModel() {
         this.allEventList = new MutableLiveData<>();
         this.currentEvent = new MutableLiveData<>();
         AppDatabase db = MainActivity.getDatabase();
         detDao = db.detailedEventDao();
         taskDao = db.taskEventDao();
         loadAllEvents();
+    }
+
+    public static EventViewModel getInstance() {
+        if(evm == null) {
+            evm = new EventViewModel();
+        }
+        return evm;
     }
 
     public LiveData<List<GenericEvent>> getAllEventList() {
@@ -64,13 +74,21 @@ public class EventViewModel extends ViewModel {
         });
     }
 
-    private void loadAllEvents() {
+    public void loadAllEvents() {
         Executors.newSingleThreadExecutor().execute(() -> {
             List<GenericEvent> res = new ArrayList<>();
             res.addAll(detDao.getAll());
             res.addAll(taskDao.getAll());
-            Log.d("EventViewModel", "res size:" + res.size());
-            allEventList.postValue(res);
+
+            List<GenericEvent> filteredEvents = new ArrayList<>();
+            for(GenericEvent e : res) {
+                if(DateUtils.isInCurrentWeek(e.getStartTime())) {
+                    filteredEvents.add(e);
+                }
+            }
+
+            Log.d("EventViewModel", "filteredEvents size:" + filteredEvents.size());
+            allEventList.postValue(filteredEvents);
         });
     }
 

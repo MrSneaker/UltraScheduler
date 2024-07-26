@@ -38,6 +38,7 @@ import com.mrsneaker.ultrascheduler.model.event.TaskEvent;
 import com.mrsneaker.ultrascheduler.ui.event.EventCardFragment;
 import com.mrsneaker.ultrascheduler.ui.event.EventFormFragment;
 import com.mrsneaker.ultrascheduler.utils.DateUtils;
+import com.mrsneaker.ultrascheduler.utils.MetricConverter;
 import com.mrsneaker.ultrascheduler.viewmodel.EventViewModel;
 
 import java.util.ArrayList;
@@ -122,6 +123,9 @@ public class DayFragment extends Fragment {
         List<String> res = new ArrayList<>();
         for (int i = 0; i < 24; ++i) {
             String hour = i + ":00";
+            if(i < 10) {
+                hour = "0" + hour;
+            }
             res.add(hour);
         }
         return res;
@@ -165,9 +169,12 @@ public class DayFragment extends Fragment {
 
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,
-                        eventHeight // Adjust height based on duration
+                        eventHeight, // Adjust height based on duration
+                        1
                 );
-                params.topMargin = topMargin;
+
+                params.topMargin = topMargin + MetricConverter.convertDpToPixel(25, requireContext());
+                params.leftMargin = MetricConverter.convertDpToPixel(5, requireContext());
 
                 eventCard.setLayoutParams(params);
                 initCardClick(eventCard);
@@ -180,7 +187,6 @@ public class DayFragment extends Fragment {
         eventCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: DISPLAY EVENT INFO  AND ALLOW MODIFICATION
 
                 long eventId = (long) view.getTag();
 
