@@ -4,6 +4,7 @@ import androidx.room.Dao;
 import androidx.room.Query;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.Update;
 
 import com.mrsneaker.ultrascheduler.model.event.TaskEvent;
 
@@ -16,6 +17,9 @@ public interface TaskEventDao {
 
     @Insert
     void insert(TaskEvent event);
+
+    @Update
+    void update(TaskEvent event);
 
     @Delete
     void delete(TaskEvent event);

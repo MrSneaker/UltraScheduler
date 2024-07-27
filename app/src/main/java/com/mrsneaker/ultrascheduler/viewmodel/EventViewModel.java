@@ -67,6 +67,34 @@ public class EventViewModel extends ViewModel {
         }).start();
     }
 
+    public void updateDetailedEvent(DetailedEvent e) {
+        new Thread(() -> {
+            detDao.update(e);
+            loadAllEvents();
+        }).start();
+    }
+
+    public void updateTaskEvent(TaskEvent e)  {
+        new Thread(() -> {
+            taskDao.update(e);
+            loadAllEvents();
+        }).start();
+    }
+
+    public void deleteDetailedEvent(DetailedEvent e) {
+        new Thread(() -> {
+            detDao.delete(e);
+            loadAllEvents();
+        }).start();
+    }
+
+    public void deleteTaskEvent(TaskEvent e) {
+        new Thread(() -> {
+            taskDao.delete(e);
+            loadAllEvents();
+        }).start();
+    }
+
     private void loadDetailedEventById(long id) {
         Executors.newSingleThreadExecutor().execute(() -> {
             GenericEvent res = detDao.getDetailedEventById(id);

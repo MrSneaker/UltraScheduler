@@ -31,4 +31,7 @@
     <string name="notification_mock">notif1\nnotif2\nnotif3</string>
     <string name="event_description_mock">desc</string>
     <string name="hour_mocker">hour_mocker</string>
+    <string name="delete">Delete</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="share">Share</string>
 </resources>

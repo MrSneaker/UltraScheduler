@@ -1,27 +1,37 @@
 package com.mrsneaker.ultrascheduler.ui.calendar;
 
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static com.mrsneaker.ultrascheduler.utils.DateUtils.monthYearFromDate;
 
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupWindow;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.mrsneaker.ultrascheduler.R;
 import com.mrsneaker.ultrascheduler.databinding.FragmentCalendarBinding;
 import com.mrsneaker.ultrascheduler.injection.ViewModelFactory;
 import com.mrsneaker.ultrascheduler.model.event.GenericEvent;
+import com.mrsneaker.ultrascheduler.ui.event.EventFormFragment;
 import com.mrsneaker.ultrascheduler.utils.DateUtils;
 import com.mrsneaker.ultrascheduler.viewmodel.EventViewModel;
 
@@ -74,6 +84,9 @@ public class CalendarFragment extends Fragment {
                              Bundle savedInstanceState) {
         binding = FragmentCalendarBinding.inflate(inflater, container, false);
         Calendar currentDate = DateUtils.getSelectedDate();
+        currentDate.set(Calendar.SECOND, 0);
+        currentDate.set(Calendar.MILLISECOND, 0);
+        DateUtils.setSelectedDate(currentDate);
 
         binding.monthYearTV.setText(monthYearFromDate(currentDate));
 
@@ -89,6 +102,7 @@ public class CalendarFragment extends Fragment {
 
         initNextWeekBtn();
         initLastWeekBtn();
+        initNewEventBtn();
 
         return binding.getRoot();
     }
@@ -103,6 +117,60 @@ public class CalendarFragment extends Fragment {
     public void onPause() {
         super.onPause();
         Log.d("CalendarFragment", "Fragment is in onPause state");
+    }
+
+    private void initNewEventBtn() {
+        Button newEvent = binding.newEventBtnWeek;
+        newEvent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                 // inflate the layout of the popup window
+                LayoutInflater inflater = (LayoutInflater)
+                        requireContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+                View popupView = inflater.inflate(R.layout.event_type_popup_selector, null);
+
+                // create the popup window
+                int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+                int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+                boolean focusable = false;
+                final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+                popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
+
+                Button okButton = popupView.findViewById(R.id.okBtnPopUpEvent);
+                okButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        RadioGroup radioGroup = popupView.findViewById(R.id.popupEventRadioGrp);
+
+                        int checkedRadioButtonId = radioGroup.getCheckedRadioButtonId();
+
+                        RadioButton selectedRadioButton = popupView.findViewById(checkedRadioButtonId);
+
+                        if (selectedRadioButton != null) {
+                            String selectedText = selectedRadioButton.getText().toString();
+                            if (selectedText.equals(getString(R.string.event))) {
+                                FragmentManager fragmentManager = getParentFragmentManager();
+                                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(DateUtils.getSelectedDate());
+                                fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
+                                fragmentTransaction.addToBackStack(null);
+                                fragmentTransaction.commit();
+                            } else if (selectedText.equals(getString(R.string.task))) {
+                                FragmentManager fragmentManager = getParentFragmentManager();
+                                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(DateUtils.getSelectedDate());
+                                fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
+                                fragmentTransaction.addToBackStack(null);
+                                fragmentTransaction.commit();
+                            }
+                        }
+                        popupWindow.dismiss();
+                    }
+                });
+
+            }
+        });
     }
 
     private void initNextWeekBtn() {
@@ -146,7 +214,7 @@ public class CalendarFragment extends Fragment {
         evm.getAllEventList().observe(getViewLifecycleOwner(), new Observer<List<GenericEvent>>() {
             @Override
             public void onChanged(List<GenericEvent> newEvents) {
-                if(!newEvents.isEmpty()) {
+                if(newEvents != null) {
                     List<GenericEvent> filteredEvents = new ArrayList<>();
 
                     for (GenericEvent event : newEvents) {

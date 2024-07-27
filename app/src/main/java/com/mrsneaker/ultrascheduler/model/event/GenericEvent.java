@@ -22,6 +22,16 @@ public class GenericEvent {
         notificationDate.add(startTime);
     }
 
+    public GenericEvent() {
+        this.subject = "";
+        this.startTime = Calendar.getInstance();
+        this.endTime = Calendar.getInstance();
+        this.description = "";
+        this.isAllDay = false;
+        notificationDate = new ArrayList<>();
+        notificationDate.add(startTime);
+    }
+
     public String getSubject() {
         return subject;
     }
