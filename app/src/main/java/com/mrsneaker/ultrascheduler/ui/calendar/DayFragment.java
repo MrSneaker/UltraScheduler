@@ -235,14 +235,14 @@ public class DayFragment extends Fragment {
                             if (selectedText.equals(getString(R.string.event))) {
                                 FragmentManager fragmentManager = getParentFragmentManager();
                                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(displayedDay);
+                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(displayedDay, "dEvent");
                                 fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
                                 fragmentTransaction.addToBackStack(null);
                                 fragmentTransaction.commit();
                             } else if (selectedText.equals(getString(R.string.task))) {
                                 FragmentManager fragmentManager = getParentFragmentManager();
                                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(displayedDay);
+                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(displayedDay, "tEvent");
                                 fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
                                 fragmentTransaction.addToBackStack(null);
                                 fragmentTransaction.commit();

@@ -5,7 +5,6 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import androidx.room.Room;
 
 import com.mrsneaker.ultrascheduler.MainActivity;
 import com.mrsneaker.ultrascheduler.database.AppDatabase;
@@ -17,8 +16,9 @@ import com.mrsneaker.ultrascheduler.model.event.TaskEvent;
 import com.mrsneaker.ultrascheduler.utils.DateUtils;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
 public class EventViewModel extends ViewModel {
@@ -48,8 +48,24 @@ public class EventViewModel extends ViewModel {
         return allEventList;
     }
 
-    public LiveData<GenericEvent> getDetailedEventById(long id) {
-        loadDetailedEventById(id);
+    public LiveData<GenericEvent> getEventById(long id) {
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        new Thread(() -> {
+            loadDetailedEventById(id);
+            if (currentEvent.getValue() == null) {
+                loadTaskEventById(id);
+            }
+            latch.countDown();
+        }).start();
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
         return currentEvent;
     }
 
@@ -98,6 +114,13 @@ public class EventViewModel extends ViewModel {
     private void loadDetailedEventById(long id) {
         Executors.newSingleThreadExecutor().execute(() -> {
             GenericEvent res = detDao.getDetailedEventById(id);
+            currentEvent.postValue(res);
+        });
+    }
+
+    private void loadTaskEventById(long id) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            GenericEvent res = taskDao.getTaskEventById(id);
             currentEvent.postValue(res);
         });
     }

@@ -86,7 +86,7 @@ public class EventCardFragment extends Fragment {
             cardView.setBackgroundTintList(cardColor);
         }
 
-        LiveData<GenericEvent> eventLiveData = evm.getDetailedEventById(eventId);
+        LiveData<GenericEvent> eventLiveData = evm.getEventById(eventId);
 
         initBackButton();
         initMoreButton();
@@ -136,14 +136,16 @@ public class EventCardFragment extends Fragment {
         event.observe(getViewLifecycleOwner(), new Observer<GenericEvent>() {
             @Override
             public void onChanged(GenericEvent event) {
-                currentEvent = event;
-                TextView desc = binding.eventDescription;
-                TextView sub = binding.eventSubject;
-                TextView eventDate = binding.eventDate;
+                if(event != null)  {
+                    currentEvent = event;
+                    TextView desc = binding.eventDescription;
+                    TextView sub = binding.eventSubject;
+                    TextView eventDate = binding.eventDate;
 
-                desc.setText(event.getDescription());
-                sub.setText(event.getSubject());
-                eventDate.setText(getEventDateString(event));
+                    desc.setText(event.getDescription());
+                    sub.setText(event.getSubject());
+                    eventDate.setText(getEventDateString(event));
+                }
             }
         });
     }

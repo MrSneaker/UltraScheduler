@@ -152,14 +152,14 @@ public class CalendarFragment extends Fragment {
                             if (selectedText.equals(getString(R.string.event))) {
                                 FragmentManager fragmentManager = getParentFragmentManager();
                                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(DateUtils.getSelectedDate());
+                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(DateUtils.getSelectedDate(), "dEvent");
                                 fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
                                 fragmentTransaction.addToBackStack(null);
                                 fragmentTransaction.commit();
                             } else if (selectedText.equals(getString(R.string.task))) {
                                 FragmentManager fragmentManager = getParentFragmentManager();
                                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(DateUtils.getSelectedDate());
+                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(DateUtils.getSelectedDate(), "tEvent");
                                 fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
                                 fragmentTransaction.addToBackStack(null);
                                 fragmentTransaction.commit();

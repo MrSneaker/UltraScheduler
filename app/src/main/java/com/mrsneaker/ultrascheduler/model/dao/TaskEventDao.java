@@ -15,6 +15,9 @@ public interface TaskEventDao {
     @Query("SELECT * FROM task_event")
     List<TaskEvent> getAll();
 
+    @Query("SELECT * FROM task_event WHERE id= :id")
+    TaskEvent getTaskEventById(long id);
+
     @Insert
     void insert(TaskEvent event);
 

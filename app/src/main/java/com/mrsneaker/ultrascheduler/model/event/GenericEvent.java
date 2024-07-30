@@ -1,5 +1,10 @@
 package com.mrsneaker.ultrascheduler.model.event;
 
+import android.content.Context;
+import android.util.Log;
+
+import com.mrsneaker.ultrascheduler.utils.NotificationHelper;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -78,5 +83,11 @@ public class GenericEvent {
 
     public void setAllDay(boolean allDay) {
         isAllDay = allDay;
+    }
+
+    public void initNotificationSendEvent(Context context) {
+        for(Calendar notification : notificationDate) {
+            NotificationHelper.scheduleNotification(context, notification.getTimeInMillis(), subject, description);
+        }
     }
 }

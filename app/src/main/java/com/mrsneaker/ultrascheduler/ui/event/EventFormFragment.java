@@ -38,19 +38,21 @@ import java.util.Objects;
  */
 public class EventFormFragment extends Fragment {
 
-    public static final String YEAR = "YEAR";
-    public static final String MONTH = "MONTH";
-    public static final String DAY_OF_MONTH = "DAY_OF_MONTH";
-    public static final String HOUR_OF_DAY = "HOUR_OF_DAY";
-    public static final String MINUTE = "MINUTE";
-    public static final String SECOND = "SECOND";
-    public static final String EVENT_ID = "EVENT_ID";
+    private static final String YEAR = "YEAR";
+    private static final String MONTH = "MONTH";
+    private static final String DAY_OF_MONTH = "DAY_OF_MONTH";
+    private static final String HOUR_OF_DAY = "HOUR_OF_DAY";
+    private static final String MINUTE = "MINUTE";
+    private static final String SECOND = "SECOND";
+    private static final String EVENT_ID = "EVENT_ID";
+    private static final String EVENT_TYPE = "EVENT_TYPE";
     private FragmentEventFormBinding binding;
     private Calendar startCal;
     private Calendar endCal;
     private EventViewModel evm;
     private long eventId;
     private GenericEvent currentEvent;
+    private String eventType;
 
     public EventFormFragment() {
         // Required empty public constructor
@@ -61,7 +63,7 @@ public class EventFormFragment extends Fragment {
      * this fragment using the provided parameters.
      * @return A new instance of fragment EventFragment.
      */
-    public static EventFormFragment newInstance(Calendar currentDay) {
+    public static EventFormFragment newInstance(Calendar currentDay, String eventType) {
         EventFormFragment fragment = new EventFormFragment();
         Bundle args = new Bundle();
         args.putInt(YEAR, currentDay.get(Calendar.YEAR));
@@ -71,6 +73,7 @@ public class EventFormFragment extends Fragment {
         args.putInt(MINUTE, currentDay.get(Calendar.MINUTE));
         args.putInt(SECOND, currentDay.get(Calendar.SECOND));
         args.putLong(EVENT_ID, -1);
+        args.putString(EVENT_TYPE, eventType);
         fragment.setArguments(args);
         return fragment;
     }
@@ -90,6 +93,7 @@ public class EventFormFragment extends Fragment {
         currentEvent = new GenericEvent();
         if(getArguments() != null) {
             eventId = getArguments().getLong(EVENT_ID);
+            eventType = getArguments().getString(EVENT_TYPE);
         }
     }
 
@@ -126,7 +130,7 @@ public class EventFormFragment extends Fragment {
     }
 
     private void initEventFormOnUpdate() {
-        LiveData<GenericEvent> eventLiveData = evm.getDetailedEventById(eventId);
+        LiveData<GenericEvent> eventLiveData = evm.getEventById(eventId);
         initEventObservation(eventLiveData);
     }
 
@@ -134,11 +138,24 @@ public class EventFormFragment extends Fragment {
         binding.saveEventBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO: make the difference between DetailEvent & TaskEvent
                 EditText subject = binding.eventSubject;
                 TextInputEditText desc = binding.eventDescriptionForm;
-                DetailedEvent detailedEvent = new DetailedEvent(subject.getText().toString(), startCal, endCal, Objects.requireNonNull(desc.getText()).toString(), isAllDay());
-                evm.insertDetailedEvent(detailedEvent);
+
+
+                switch (eventType) {
+                    case "dEvent":
+                        DetailedEvent detailedEvent = new DetailedEvent(subject.getText().toString(), startCal, endCal, Objects.requireNonNull(desc.getText()).toString(), isAllDay());
+                        detailedEvent.initNotificationSendEvent(requireContext());
+                        evm.insertDetailedEvent(detailedEvent);
+                        break;
+                    case "tEvent":
+                        TaskEvent taskEvent = new TaskEvent(subject.getText().toString(), startCal, Objects.requireNonNull(desc.getText()).toString(), isAllDay());
+                        taskEvent.initNotificationSendEvent(requireContext());
+                        evm.insertTaskEvent(taskEvent);
+                        break;
+                    default:
+                        break;
+                }
 
                 FragmentManager fragmentManager = getParentFragmentManager();
                 fragmentManager.popBackStack();
@@ -322,14 +339,7 @@ public class EventFormFragment extends Fragment {
         TextView dateStart = binding.dateStart;
         TextView dateEnd = binding.dateEnd;
 
-        // Log the current start and end dates and times
-        Log.d("EventFormFragment", "startCal: " + startCal.getTime());
-        Log.d("EventFormFragment", "endCal: " + endCal.getTime());
-
-        // Compare the start and end times
         int comparison = startCal.compareTo(endCal);
-
-        Log.d("EventFormFragment", "comp: " + comparison);
 
         if (comparison > 0) {
             if(idSelected == binding.dateEnd.getId() || idSelected == binding.hourEnd.getId()) {
@@ -344,11 +354,6 @@ public class EventFormFragment extends Fragment {
                 updateDateTimeTextViews(hourEnd, dateEnd, endCal);
             }
         }
-
-        // Always update the start TextViews to ensure consistency
-        //updateDateTimeTextViews(hourStart, dateStart, startCal);
-        // Always update the end TextViews to ensure consistency
-        // updateDateTimeTextViews(hourEnd, dateEnd, endCal);
     }
 
 
