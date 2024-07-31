@@ -191,9 +191,9 @@ public class EventFormFragment extends Fragment {
         eventLiveData.observe(getViewLifecycleOwner(), new Observer<GenericEvent>() {
             @Override
             public void onChanged(GenericEvent event) {
-                Log.d("EventFormFragment", "event id : " + eventId);
-                Log.d("EventFormFragment", "event  onChange : " + event);
-                currentEvent = event;
+                if(event != null) {
+                    currentEvent = event;
+                }
                 TextView dateStart = binding.dateStart;
                 TextView dateEnd = binding.dateEnd;
                 TextView hourStart = binding.hourStart;

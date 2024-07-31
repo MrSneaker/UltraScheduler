@@ -111,7 +111,6 @@ public class EventCardFragment extends Fragment {
         moreBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: display options
                 showPopupMenu(view);
             }
         });

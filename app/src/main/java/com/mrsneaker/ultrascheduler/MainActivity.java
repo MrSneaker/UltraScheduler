@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < permissions.length; i++) {
                 perms.put(permissions[i], grantResults[i]);
             }
-
             boolean allPermissionsGranted = true;
             for (String permission : permissions) {
                 if (perms.get(permission) != PackageManager.PERMISSION_GRANTED) {
