@@ -149,38 +149,61 @@ public class DayFragment extends Fragment {
                 TextView eventDateTextView = eventCard.findViewById(R.id.eventDate);
                 eventDateTextView.setText(getEventDateString(event));
 
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0,0);
+
                 if (event instanceof DetailedEvent) {
                     eventCard.setTag(((DetailedEvent) event).getId());
+                    params = initDetailedEventView((DetailedEvent) event);
                 } else if (event instanceof TaskEvent) {
                     eventCard.setTag(((TaskEvent) event).getId());
+                    params = initTaskEventView((TaskEvent) event);
                 }
-
-                int startHour = event.getStartTime().get(Calendar.HOUR_OF_DAY);
-                int startMinute = event.getStartTime().get(Calendar.MINUTE);
-                int endHour = event.getEndTime().get(Calendar.HOUR_OF_DAY);
-                endHour = (endHour == 0) ? 24  : endHour;
-                int endMinute = event.getEndTime().get(Calendar.MINUTE);
-
-                int durationInMinutes = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
-
-                int hourHeight = getResources().getDimensionPixelSize(R.dimen.hour_height);
-                int eventHeight = (durationInMinutes * hourHeight) / 60;
-                int topMargin = (startHour * hourHeight) + (startMinute * hourHeight) / 60;
-
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        eventHeight, // Adjust height based on duration
-                        1
-                );
-
-                params.topMargin = topMargin + MetricConverter.convertDpToPixel(25, requireContext());
-                params.leftMargin = MetricConverter.convertDpToPixel(5, requireContext());
 
                 eventCard.setLayoutParams(params);
                 initCardClick(eventCard);
                 eventsContainer.addView(eventCard);
             }
         }
+    }
+
+    private LinearLayout.LayoutParams initDetailedEventView(DetailedEvent event) {
+        int startHour = event.getStartTime().get(Calendar.HOUR_OF_DAY);
+        int startMinute = event.getStartTime().get(Calendar.MINUTE);
+        int endHour = event.getEndTime().get(Calendar.HOUR_OF_DAY);
+        endHour = (endHour == 0) ? 24  : endHour;
+        int endMinute = event.getEndTime().get(Calendar.MINUTE);
+
+        int durationInMinutes = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
+
+        int hourHeight = getResources().getDimensionPixelSize(R.dimen.hour_height);
+        int eventHeight = (durationInMinutes * hourHeight) / 60;
+        int topMargin = (startHour * hourHeight) + (startMinute * hourHeight) / 60;
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                eventHeight, // Adjust height based on duration
+                1
+        );
+
+        params.topMargin = topMargin + MetricConverter.convertDpToPixel(25, requireContext());
+        params.leftMargin = MetricConverter.convertDpToPixel(5, requireContext());
+        return params;
+    }
+
+    private LinearLayout.LayoutParams initTaskEventView(TaskEvent event) {
+        int startHour = event.getStartTime().get(Calendar.HOUR_OF_DAY);
+        int startMinute = event.getStartTime().get(Calendar.MINUTE);
+        int hourHeight = getResources().getDimensionPixelSize(R.dimen.hour_height);
+        int topMargin = (startHour * hourHeight) + (startMinute * hourHeight) / 60;
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                hourHeight / 2,
+                1
+        );
+        params.topMargin = topMargin + MetricConverter.convertDpToPixel(25, requireContext());
+        params.leftMargin = MetricConverter.convertDpToPixel(5, requireContext());
+        return params;
     }
 
     private void initCardClick(CardView eventCard) {
@@ -206,12 +229,10 @@ public class DayFragment extends Fragment {
         addEventBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // inflate the layout of the popup window
                 LayoutInflater inflater = (LayoutInflater)
                         requireContext().getSystemService(LAYOUT_INFLATER_SERVICE);
                 View popupView = inflater.inflate(R.layout.event_type_popup_selector, null);
 
-                // create the popup window
                 int width = LinearLayout.LayoutParams.WRAP_CONTENT;
                 int height = LinearLayout.LayoutParams.WRAP_CONTENT;
                 boolean focusable = false;
@@ -233,19 +254,9 @@ public class DayFragment extends Fragment {
                             String selectedText = selectedRadioButton.getText().toString();
                             setDisplayedDay();
                             if (selectedText.equals(getString(R.string.event))) {
-                                FragmentManager fragmentManager = getParentFragmentManager();
-                                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(displayedDay, "dEvent");
-                                fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
-                                fragmentTransaction.addToBackStack(null);
-                                fragmentTransaction.commit();
+                                goToEventForm(displayedDay, "dEvent");
                             } else if (selectedText.equals(getString(R.string.task))) {
-                                FragmentManager fragmentManager = getParentFragmentManager();
-                                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(displayedDay, "tEvent");
-                                fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
-                                fragmentTransaction.addToBackStack(null);
-                                fragmentTransaction.commit();
+                                goToEventForm(displayedDay, "tEvent");
                             }
                         }
                         popupWindow.dismiss();
@@ -254,6 +265,15 @@ public class DayFragment extends Fragment {
 
             }
         });
+    }
+
+    private void goToEventForm(Calendar displayedDay, String eventType) {
+        FragmentManager fragmentManager = getParentFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        EventFormFragment eventFormFragment = EventFormFragment.newInstance(displayedDay, eventType);
+        fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
     }
 
     private void setDisplayedDay() {

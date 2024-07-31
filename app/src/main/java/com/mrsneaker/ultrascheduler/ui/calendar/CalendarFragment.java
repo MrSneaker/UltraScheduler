@@ -150,19 +150,9 @@ public class CalendarFragment extends Fragment {
                         if (selectedRadioButton != null) {
                             String selectedText = selectedRadioButton.getText().toString();
                             if (selectedText.equals(getString(R.string.event))) {
-                                FragmentManager fragmentManager = getParentFragmentManager();
-                                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(DateUtils.getSelectedDate(), "dEvent");
-                                fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
-                                fragmentTransaction.addToBackStack(null);
-                                fragmentTransaction.commit();
+                                goToEventForm(DateUtils.getSelectedDate(), "dEvent");
                             } else if (selectedText.equals(getString(R.string.task))) {
-                                FragmentManager fragmentManager = getParentFragmentManager();
-                                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                                EventFormFragment eventFormFragment = EventFormFragment.newInstance(DateUtils.getSelectedDate(), "tEvent");
-                                fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
-                                fragmentTransaction.addToBackStack(null);
-                                fragmentTransaction.commit();
+                                goToEventForm(DateUtils.getSelectedDate(), "tEvent");
                             }
                         }
                         popupWindow.dismiss();
@@ -171,6 +161,15 @@ public class CalendarFragment extends Fragment {
 
             }
         });
+    }
+
+    private void goToEventForm(Calendar displayedDay, String eventType) {
+        FragmentManager fragmentManager = getParentFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        EventFormFragment eventFormFragment = EventFormFragment.newInstance(displayedDay, eventType);
+        fragmentTransaction.add(R.id.fragment_container_view, eventFormFragment);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
     }
 
     private void initNextWeekBtn() {

@@ -34,4 +34,9 @@
     <string name="delete">Delete</string>
     <string name="duplicate">Duplicate</string>
     <string name="share">Share</string>
+    <string name="ultra_scheduler">Ultra Scheduler</string>
+    <string name="calendar_view">Calendar View</string>
+    <string name="todo_tasks">Todo Tasks</string>
+    <string name="planify_activities">Planify Activities</string>
+    <string name="coming_soon">Coming SOON</string>
 </resources>
