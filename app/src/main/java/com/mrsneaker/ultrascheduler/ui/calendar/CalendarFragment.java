@@ -35,10 +35,8 @@ import com.mrsneaker.ultrascheduler.ui.event.EventFormFragment;
 import com.mrsneaker.ultrascheduler.utils.DateUtils;
 import com.mrsneaker.ultrascheduler.viewmodel.EventViewModel;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -121,45 +119,39 @@ public class CalendarFragment extends Fragment {
 
     private void initNewEventBtn() {
         Button newEvent = binding.newEventBtnWeek;
-        newEvent.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                 // inflate the layout of the popup window
-                LayoutInflater inflater = (LayoutInflater)
-                        requireContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-                View popupView = inflater.inflate(R.layout.event_type_popup_selector, null);
+        newEvent.setOnClickListener(view -> {
+             // inflate the layout of the popup window
+            LayoutInflater inflater = (LayoutInflater)
+                    requireContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+            View popupView = inflater.inflate(R.layout.event_type_popup_selector, null);
 
-                // create the popup window
-                int width = LinearLayout.LayoutParams.WRAP_CONTENT;
-                int height = LinearLayout.LayoutParams.WRAP_CONTENT;
-                boolean focusable = false;
-                final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+            // create the popup window
+            int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+            int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            boolean focusable = false;
+            final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
 
-                popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
+            popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
 
-                Button okButton = popupView.findViewById(R.id.okBtnPopUpEvent);
-                okButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        RadioGroup radioGroup = popupView.findViewById(R.id.popupEventRadioGrp);
+            Button okButton = popupView.findViewById(R.id.okBtnPopUpEvent);
+            okButton.setOnClickListener(v -> {
+                RadioGroup radioGroup = popupView.findViewById(R.id.popupEventRadioGrp);
 
-                        int checkedRadioButtonId = radioGroup.getCheckedRadioButtonId();
+                int checkedRadioButtonId = radioGroup.getCheckedRadioButtonId();
 
-                        RadioButton selectedRadioButton = popupView.findViewById(checkedRadioButtonId);
+                RadioButton selectedRadioButton = popupView.findViewById(checkedRadioButtonId);
 
-                        if (selectedRadioButton != null) {
-                            String selectedText = selectedRadioButton.getText().toString();
-                            if (selectedText.equals(getString(R.string.event))) {
-                                goToEventForm(DateUtils.getSelectedDate(), "dEvent");
-                            } else if (selectedText.equals(getString(R.string.task))) {
-                                goToEventForm(DateUtils.getSelectedDate(), "tEvent");
-                            }
-                        }
-                        popupWindow.dismiss();
+                if (selectedRadioButton != null) {
+                    String selectedText = selectedRadioButton.getText().toString();
+                    if (selectedText.equals(getString(R.string.event))) {
+                        goToEventForm(DateUtils.getSelectedDate(), "dEvent");
+                    } else if (selectedText.equals(getString(R.string.task))) {
+                        goToEventForm(DateUtils.getSelectedDate(), "tEvent");
                     }
-                });
+                }
+                popupWindow.dismiss();
+            });
 
-            }
         });
     }
 
@@ -174,29 +166,23 @@ public class CalendarFragment extends Fragment {
 
     private void initNextWeekBtn() {
         Button nextWeek = binding.nextWeekBtn;
-        nextWeek.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                RecyclerView recyclerView = binding.calendarRecyclerView;
-                Calendar currentDate = (Calendar) DateUtils.getNextWeek().clone();
-                recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
-                updateMonthYearTitle();
-                evm.loadAllEvents();
-            }
+        nextWeek.setOnClickListener(view -> {
+            RecyclerView recyclerView = binding.calendarRecyclerView;
+            Calendar currentDate = (Calendar) DateUtils.getNextWeek().clone();
+            recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
+            updateMonthYearTitle();
+            evm.loadAllEvents();
         });
     }
 
     private void initLastWeekBtn() {
         Button lastWeek = binding.previousWeekBtn;
-        lastWeek.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                RecyclerView recyclerView = binding.calendarRecyclerView;
-                Calendar currentDate = (Calendar) DateUtils.getLastWeek().clone();
-                recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
-                updateMonthYearTitle();
-                evm.loadAllEvents();
-            }
+        lastWeek.setOnClickListener(view -> {
+            RecyclerView recyclerView = binding.calendarRecyclerView;
+            Calendar currentDate = (Calendar) DateUtils.getLastWeek().clone();
+            recyclerView.setAdapter(new CalendarAdapter(DateUtils.daysInWeekArray(currentDate), getParentFragmentManager()));
+            updateMonthYearTitle();
+            evm.loadAllEvents();
         });
     }
 
@@ -210,27 +196,19 @@ public class CalendarFragment extends Fragment {
     }
 
     private void refreshData() {
-        evm.getAllEventList().observe(getViewLifecycleOwner(), new Observer<List<GenericEvent>>() {
-            @Override
-            public void onChanged(List<GenericEvent> newEvents) {
-                if(newEvents != null) {
-                    List<GenericEvent> filteredEvents = new ArrayList<>();
+        evm.getAllEventList().observe(getViewLifecycleOwner(), newEvents -> {
+            if(newEvents != null) {
+                List<GenericEvent> filteredEvents = new ArrayList<>();
 
-                    for (GenericEvent event : newEvents) {
-                        if (DateUtils.isInCurrentWeek(event.getStartTime())) {
-                            filteredEvents.add(event);
-                        }
+                for (GenericEvent event : newEvents) {
+                    if (DateUtils.isInCurrentWeek(event.getStartTime())) {
+                        filteredEvents.add(event);
                     }
-                    filteredEvents.sort(new Comparator<GenericEvent>() {
-                        @Override
-                        public int compare(GenericEvent e1, GenericEvent e2) {
-                            return e1.getStartTime().compareTo(e2.getStartTime());
-                        }
-                    });
-                    events.clear();
-                    events.addAll(filteredEvents);
-                    eventAdapter.notifyDataSetChanged();
                 }
+                filteredEvents.sort(Comparator.comparing(GenericEvent::getStartTime));
+                events.clear();
+                events.addAll(filteredEvents);
+                eventAdapter.notifyDataSetChanged();
             }
         });
     }

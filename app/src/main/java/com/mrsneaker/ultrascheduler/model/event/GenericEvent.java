@@ -24,7 +24,6 @@ public class GenericEvent {
         this.description = description;
         this.isAllDay = isAllDay;
         notificationDate = new ArrayList<>();
-        notificationDate.add(startTime);
     }
 
     public GenericEvent() {
@@ -69,6 +68,10 @@ public class GenericEvent {
         this.notificationDate = notificationDate;
     }
 
+    public void addNotification(Calendar notification) {
+        this.notificationDate.add(notification);
+    }
+
     public void setStartTime(Calendar startTime) {
         this.startTime = startTime;
     }
@@ -86,6 +89,7 @@ public class GenericEvent {
     }
 
     public void initNotificationSendEvent(Context context) {
+        NotificationHelper.scheduleNotification(context, startTime.getTimeInMillis(), subject, description);
         for(Calendar notification : notificationDate) {
             NotificationHelper.scheduleNotification(context, notification.getTimeInMillis(), subject, description);
         }

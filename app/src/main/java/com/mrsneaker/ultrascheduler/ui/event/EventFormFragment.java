@@ -11,7 +11,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +28,7 @@ import com.mrsneaker.ultrascheduler.model.event.TaskEvent;
 import com.mrsneaker.ultrascheduler.viewmodel.EventViewModel;
 
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -135,80 +135,74 @@ public class EventFormFragment extends Fragment {
     }
 
     private void initSaveButtonOnCreation() {
-        binding.saveEventBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                EditText subject = binding.eventSubject;
-                TextInputEditText desc = binding.eventDescriptionForm;
+        binding.saveEventBtn.setOnClickListener(view -> {
+            EditText subject = binding.eventSubject;
+            TextInputEditText desc = binding.eventDescriptionForm;
+            Calendar baseNotif = (Calendar) startCal.clone();
+            baseNotif.add(Calendar.MINUTE,  -30);
 
-
-                switch (eventType) {
-                    case "dEvent":
-                        DetailedEvent detailedEvent = new DetailedEvent(subject.getText().toString(), startCal, endCal, Objects.requireNonNull(desc.getText()).toString(), isAllDay());
-                        detailedEvent.initNotificationSendEvent(requireContext());
-                        evm.insertDetailedEvent(detailedEvent);
-                        break;
-                    case "tEvent":
-                        TaskEvent taskEvent = new TaskEvent(subject.getText().toString(), startCal, Objects.requireNonNull(desc.getText()).toString(), isAllDay());
-                        taskEvent.initNotificationSendEvent(requireContext());
-                        evm.insertTaskEvent(taskEvent);
-                        break;
-                    default:
-                        break;
-                }
-
-                FragmentManager fragmentManager = getParentFragmentManager();
-                fragmentManager.popBackStack();
+            switch (eventType) {
+                case "dEvent":
+                    DetailedEvent detailedEvent = new DetailedEvent(subject.getText().toString(), startCal, endCal, Objects.requireNonNull(desc.getText()).toString(), isAllDay());
+                    detailedEvent.addNotification(baseNotif);
+                    detailedEvent.initNotificationSendEvent(requireContext());
+                    evm.insertDetailedEvent(detailedEvent);
+                    break;
+                case "tEvent":
+                    TaskEvent taskEvent = new TaskEvent(subject.getText().toString(), startCal, Objects.requireNonNull(desc.getText()).toString(), isAllDay());
+                    taskEvent.addNotification(baseNotif);
+                    taskEvent.initNotificationSendEvent(requireContext());
+                    evm.insertTaskEvent(taskEvent);
+                    break;
+                default:
+                    break;
             }
+
+            FragmentManager fragmentManager = getParentFragmentManager();
+            fragmentManager.popBackStack();
         });
     }
 
     private void initSaveButtonOnUpdate() {
-        binding.saveEventBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        binding.saveEventBtn.setOnClickListener(view -> {
 
-                EditText subject = binding.eventSubject;
-                TextInputEditText desc = binding.eventDescriptionForm;
-                currentEvent.setSubject(subject.getText().toString());
-                currentEvent.setDescription(desc.getText().toString());
-                currentEvent.setAllDay(isAllDay());
+            EditText subject = binding.eventSubject;
+            TextInputEditText desc = binding.eventDescriptionForm;
+            currentEvent.setSubject(subject.getText().toString());
+            currentEvent.setDescription(Objects.requireNonNull(desc.getText()).toString());
+            currentEvent.setAllDay(isAllDay());
 
-                if(currentEvent  instanceof DetailedEvent) {
-                    DetailedEvent detailedEvent = (DetailedEvent) currentEvent;
-                    evm.updateDetailedEvent(detailedEvent);
-                } else {
-                    TaskEvent taskEvent = (TaskEvent) currentEvent;
-                    evm.updateTaskEvent(taskEvent);
-                }
-                FragmentManager fragmentManager = getParentFragmentManager();
-                fragmentManager.popBackStack();
+            if(currentEvent  instanceof DetailedEvent) {
+                DetailedEvent detailedEvent = (DetailedEvent) currentEvent;
+                evm.updateDetailedEvent(detailedEvent);
+            } else {
+                TaskEvent taskEvent = (TaskEvent) currentEvent;
+                evm.updateTaskEvent(taskEvent);
             }
+            FragmentManager fragmentManager = getParentFragmentManager();
+            fragmentManager.popBackStack();
         });
     }
 
     private void initEventObservation(LiveData<GenericEvent>  eventLiveData) {
-        eventLiveData.observe(getViewLifecycleOwner(), new Observer<GenericEvent>() {
-            @Override
-            public void onChanged(GenericEvent event) {
-                if(event != null) {
-                    currentEvent = event;
-                }
-                TextView dateStart = binding.dateStart;
-                TextView dateEnd = binding.dateEnd;
-                TextView hourStart = binding.hourStart;
-                TextView hourEnd = binding.hourEnd;
-                EditText sub = binding.eventSubject;
-                TextInputEditText desc = binding.eventDescriptionForm;
-
-                startCal = currentEvent.getStartTime();
-                endCal = currentEvent.getEndTime();
-                setDateStringView(dateStart, dateEnd, hourStart, hourEnd);
-
-                sub.setText(currentEvent.getSubject());
-                desc.setText(currentEvent.getDescription());
-                binding.isAllDaySwitch.setChecked(currentEvent.isAllDay());
+        eventLiveData.observe(getViewLifecycleOwner(), event -> {
+            if(event != null) {
+                currentEvent = event;
             }
+            TextView dateStart = binding.dateStart;
+            TextView dateEnd = binding.dateEnd;
+            TextView hourStart = binding.hourStart;
+            TextView hourEnd = binding.hourEnd;
+            EditText sub = binding.eventSubject;
+            TextInputEditText desc = binding.eventDescriptionForm;
+
+            startCal = currentEvent.getStartTime();
+            endCal = currentEvent.getEndTime();
+            setDateStringView(dateStart, dateEnd, hourStart, hourEnd);
+
+            sub.setText(currentEvent.getSubject());
+            desc.setText(currentEvent.getDescription());
+            binding.isAllDaySwitch.setChecked(currentEvent.isAllDay());
         });
     }
 
@@ -217,10 +211,10 @@ public class EventFormFragment extends Fragment {
     }
 
     private void setDateStringView(TextView dateStart, TextView dateEnd, TextView hourStart, TextView hourEnd) {
-        dateStart.setText(String.format("%02d/%02d/%04d", startCal.get(Calendar.DAY_OF_MONTH),  startCal.get(Calendar.MONTH) + 1, startCal.get(Calendar.YEAR)));
-        dateEnd.setText(String.format("%02d/%02d/%04d", endCal.get(Calendar.DAY_OF_MONTH),  endCal.get(Calendar.MONTH) + 1, endCal.get(Calendar.YEAR)));
-        hourStart.setText(String.format("%02d:%02d", startCal.get(Calendar.HOUR_OF_DAY), startCal.get(Calendar.MINUTE)));
-        hourEnd.setText(String.format("%02d:%02d", endCal.get(Calendar.HOUR_OF_DAY), endCal.get(Calendar.MINUTE)));
+        dateStart.setText(String.format(Locale.getDefault(), "%02d/%02d/%04d", startCal.get(Calendar.DAY_OF_MONTH),  startCal.get(Calendar.MONTH) + 1, startCal.get(Calendar.YEAR)));
+        dateEnd.setText(String.format(Locale.getDefault(),"%02d/%02d/%04d", endCal.get(Calendar.DAY_OF_MONTH),  endCal.get(Calendar.MONTH) + 1, endCal.get(Calendar.YEAR)));
+        hourStart.setText(String.format(Locale.getDefault(),"%02d:%02d", startCal.get(Calendar.HOUR_OF_DAY), startCal.get(Calendar.MINUTE)));
+        hourEnd.setText(String.format(Locale.getDefault(),"%02d:%02d", endCal.get(Calendar.HOUR_OF_DAY), endCal.get(Calendar.MINUTE)));
     }
 
     private Calendar setStartCalendar() {
@@ -250,36 +244,16 @@ public class EventFormFragment extends Fragment {
         TextView dateStart = binding.dateStart;
         TextView dateEnd = binding.dateEnd;
 
-        dateStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showDatePickerDialog(dateStart, startCal);
-            }
-        });
-        dateEnd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showDatePickerDialog(dateEnd, endCal);
-            }
-        });
+        dateStart.setOnClickListener(view -> showDatePickerDialog(dateStart, startCal));
+        dateEnd.setOnClickListener(view -> showDatePickerDialog(dateEnd, endCal));
     }
 
     private void initHourClick() {
         TextView hourStart = binding.hourStart;
         TextView hourEnd = binding.hourEnd;
 
-        hourStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showTimePickerDialog(hourStart, startCal);
-            }
-        });
-        hourEnd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showTimePickerDialog(hourEnd, endCal);
-            }
-        });
+        hourStart.setOnClickListener(view -> showTimePickerDialog(hourStart, startCal));
+        hourEnd.setOnClickListener(view -> showTimePickerDialog(hourEnd, endCal));
     }
 
     private void showDatePickerDialog(final TextView dateTextView, Calendar cal) {
@@ -289,19 +263,16 @@ public class EventFormFragment extends Fragment {
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 requireContext(),
-                new DatePickerDialog.OnDateSetListener() {
-                    @Override
-                    public void onDateSet(DatePicker view, int selectedYear, int selectedMonth, int selectedDay) {
+                (view, selectedYear, selectedMonth, selectedDay) -> {
 
-                        cal.set(Calendar.YEAR, selectedYear);
-                        cal.set(Calendar.MONTH, selectedMonth);
-                        cal.set(Calendar.DAY_OF_MONTH, selectedDay);
+                    cal.set(Calendar.YEAR, selectedYear);
+                    cal.set(Calendar.MONTH, selectedMonth);
+                    cal.set(Calendar.DAY_OF_MONTH, selectedDay);
 
-                        String selectedDate = String.format("%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear);
-                        dateTextView.setText(selectedDate);
+                    String selectedDate = String.format(Locale.getDefault(), "%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear);
+                    dateTextView.setText(selectedDate);
 
-                        dateAutoCorrect(dateTextView.getId());
-                    }
+                    dateAutoCorrect(dateTextView.getId());
                 },
                 year, month, day
         );
@@ -315,18 +286,15 @@ public class EventFormFragment extends Fragment {
 
         TimePickerDialog timePickerDialog = new TimePickerDialog(
                 requireContext(),
-                new TimePickerDialog.OnTimeSetListener() {
-                    @Override
-                    public void onTimeSet(TimePicker view, int selectedHour, int selectedMinute) {
+                (view, selectedHour, selectedMinute) -> {
 
-                        cal.set(Calendar.HOUR_OF_DAY, selectedHour);
-                        cal.set(Calendar.MINUTE, selectedMinute);
+                    cal.set(Calendar.HOUR_OF_DAY, selectedHour);
+                    cal.set(Calendar.MINUTE, selectedMinute);
 
-                        String selectedTime = String.format("%02d:%02d", selectedHour, selectedMinute);
-                        hourTextView.setText(selectedTime);
+                    String selectedTime = String.format(Locale.getDefault(), "%02d:%02d", selectedHour, selectedMinute);
+                    hourTextView.setText(selectedTime);
 
-                        dateAutoCorrect(hourTextView.getId());
-                    }
+                    dateAutoCorrect(hourTextView.getId());
                 },
                 hour, minute, true
         );
@@ -358,10 +326,10 @@ public class EventFormFragment extends Fragment {
 
 
     private void updateDateTimeTextViews(TextView hourTextView, TextView dateTextView, Calendar calendar) {
-        String selectedTime = String.format("%02d:%02d", calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
+        String selectedTime = String.format(Locale.getDefault(), "%02d:%02d", calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
         hourTextView.setText(selectedTime);
 
-        String selectedDate = String.format("%02d/%02d/%04d", calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.YEAR));
+        String selectedDate = String.format(Locale.getDefault() ,"%02d/%02d/%04d", calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.YEAR));
         dateTextView.setText(selectedDate);
     }
 }

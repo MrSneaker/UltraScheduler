@@ -56,16 +56,13 @@ public class HomeFragment extends Fragment {
     }
 
     private void initCalendarViewCardClick() {
-        binding.calendarViewHomeCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                FragmentManager fragmentManager = getParentFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                CalendarFragment calendarFragment = CalendarFragment.newInstance();
-                fragmentTransaction.replace(R.id.fragment_container_view, calendarFragment);
-                fragmentTransaction.addToBackStack(null);
-                fragmentTransaction.commit();
-            }
+        binding.calendarViewHomeCard.setOnClickListener(view -> {
+            FragmentManager fragmentManager = getParentFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            CalendarFragment calendarFragment = CalendarFragment.newInstance();
+            fragmentTransaction.replace(R.id.fragment_container_view, calendarFragment);
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
         });
     }
 }

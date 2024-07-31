@@ -12,7 +12,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -98,53 +97,37 @@ public class EventCardFragment extends Fragment {
 
     private void initBackButton() {
         ImageButton backBtn = binding.backArrowBtn;
-        backBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getParentFragmentManager().popBackStack();
-            }
-        });
+        backBtn.setOnClickListener(view -> getParentFragmentManager().popBackStack());
     }
 
     private void initMoreButton() {
         ImageButton moreBtn = binding.moreOptBtn;
-        moreBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showPopupMenu(view);
-            }
-        });
+        moreBtn.setOnClickListener(this::showPopupMenu);
     }
 
     private void initModifyBtn() {
         ImageButton modifyBtn = binding.modifyBtn;
-        modifyBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                FragmentManager fragmentManager = getParentFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                EventFormFragment eventFormFragment =  EventFormFragment.newInstance(eventId);
-                fragmentTransaction.replace(R.id.fragment_container_view, eventFormFragment);
-                fragmentTransaction.addToBackStack(null);
-                fragmentTransaction.commit();
-            }
+        modifyBtn.setOnClickListener(view -> {
+            FragmentManager fragmentManager = getParentFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            EventFormFragment eventFormFragment =  EventFormFragment.newInstance(eventId);
+            fragmentTransaction.replace(R.id.fragment_container_view, eventFormFragment);
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
         });
     }
 
     private void initObserveEventLiveData(LiveData<GenericEvent> event) {
-        event.observe(getViewLifecycleOwner(), new Observer<GenericEvent>() {
-            @Override
-            public void onChanged(GenericEvent event) {
-                if(event != null)  {
-                    currentEvent = event;
-                    TextView desc = binding.eventDescription;
-                    TextView sub = binding.eventSubject;
-                    TextView eventDate = binding.eventDate;
+        event.observe(getViewLifecycleOwner(), event1 -> {
+            if(event1 != null)  {
+                currentEvent = event1;
+                TextView desc = binding.eventDescription;
+                TextView sub = binding.eventSubject;
+                TextView eventDate = binding.eventDate;
 
-                    desc.setText(event.getDescription());
-                    sub.setText(event.getSubject());
-                    eventDate.setText(getEventDateString(event));
-                }
+                desc.setText(event1.getDescription());
+                sub.setText(event1.getSubject());
+                eventDate.setText(getEventDateString(event1));
             }
         });
     }
@@ -152,27 +135,24 @@ public class EventCardFragment extends Fragment {
     private void showPopupMenu(View view) {
         PopupMenu popupMenu = new PopupMenu(requireContext(), view);
         popupMenu.getMenuInflater().inflate(R.menu.more_card_options, popupMenu.getMenu());
-        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
-                int id = menuItem.getItemId();
-                if(id == R.id.deleteCardOpt) {
-                    if(currentEvent instanceof DetailedEvent)  {
-                        evm.deleteDetailedEvent((DetailedEvent) currentEvent);
-                    } else {
-                        evm.deleteTaskEvent((TaskEvent) currentEvent);
-                    }
-                    getParentFragmentManager().popBackStack();
-                    return true;
-                } else if(id == R.id.duplicateCardOpt) {
-                    //TODO: duplicate action
-                    return true;
-                } else if (id == R.id.shareCardOpt) {
-                    //TODO: share action
-                    return true;
+        popupMenu.setOnMenuItemClickListener(menuItem -> {
+            int id = menuItem.getItemId();
+            if(id == R.id.deleteCardOpt) {
+                if(currentEvent instanceof DetailedEvent)  {
+                    evm.deleteDetailedEvent((DetailedEvent) currentEvent);
+                } else {
+                    evm.deleteTaskEvent((TaskEvent) currentEvent);
                 }
-                return false;
+                getParentFragmentManager().popBackStack();
+                return true;
+            } else if(id == R.id.duplicateCardOpt) {
+                //TODO: duplicate action
+                return true;
+            } else if (id == R.id.shareCardOpt) {
+                //TODO: share action
+                return true;
             }
+            return false;
         });
         popupMenu.show();
     }
@@ -194,7 +174,7 @@ public class EventCardFragment extends Fragment {
         Integer endHour = endDate.get(Calendar.HOUR_OF_DAY);
         Integer endMin = endDate.get(Calendar.MINUTE);
 
-        String res = String.format("%02d " + startMonth + " %04d %02d:%02d - %02d " + endMonth + " %04d %02d:%02d",
+        return String.format("%02d " + startMonth + " %04d %02d:%02d - %02d " + endMonth + " %04d %02d:%02d",
                 startDayOfMonth,
                 startYear,
                 startHour,
@@ -203,7 +183,6 @@ public class EventCardFragment extends Fragment {
                 endYear,
                 endHour,
                 endMin);
-        return res;
     }
 
 }

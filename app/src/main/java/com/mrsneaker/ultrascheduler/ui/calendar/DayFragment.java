@@ -104,7 +104,7 @@ public class DayFragment extends Fragment {
             String date = getArguments().getString(ACTUAL_DAY);
             binding.actualDayTV.setText(date);
         } else {
-            binding.actualDayTV.setText("ERROR");
+            binding.actualDayTV.setText(R.string.error);
         }
 
         RecyclerView recyclerView = binding.hourRecyclerView;
@@ -207,63 +207,54 @@ public class DayFragment extends Fragment {
     }
 
     private void initCardClick(CardView eventCard) {
-        eventCard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        eventCard.setOnClickListener(view -> {
 
-                long eventId = (long) view.getTag();
+            long eventId = (long) view.getTag();
 
-                ColorStateList cardColor = eventCard.getBackgroundTintList();
-                FragmentManager fragmentManager = getParentFragmentManager();
-                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                EventCardFragment eventCardFragment = EventCardFragment.newInstance(cardColor, eventId);
-                fragmentTransaction.add(R.id.fragment_container_view, eventCardFragment);
-                fragmentTransaction.addToBackStack(null);
-                fragmentTransaction.commit();
-            }
+            ColorStateList cardColor = eventCard.getBackgroundTintList();
+            FragmentManager fragmentManager = getParentFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            EventCardFragment eventCardFragment = EventCardFragment.newInstance(cardColor, eventId);
+            fragmentTransaction.add(R.id.fragment_container_view, eventCardFragment);
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
         });
     }
 
     private void initAddEventButton() {
         Button addEventBtn = binding.addEventDay;
-        addEventBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                LayoutInflater inflater = (LayoutInflater)
-                        requireContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-                View popupView = inflater.inflate(R.layout.event_type_popup_selector, null);
+        addEventBtn.setOnClickListener(view -> {
+            LayoutInflater inflater = (LayoutInflater)
+                    requireContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+            View popupView = inflater.inflate(R.layout.event_type_popup_selector, null);
 
-                int width = LinearLayout.LayoutParams.WRAP_CONTENT;
-                int height = LinearLayout.LayoutParams.WRAP_CONTENT;
-                boolean focusable = false;
-                final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+            int width = LinearLayout.LayoutParams.WRAP_CONTENT;
+            int height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            boolean focusable = false;
+            final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
 
-                popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
+            popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
 
-                Button okButton = popupView.findViewById(R.id.okBtnPopUpEvent);
-                okButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        RadioGroup radioGroup = popupView.findViewById(R.id.popupEventRadioGrp);
+            Button okButton = popupView.findViewById(R.id.okBtnPopUpEvent);
+            okButton.setOnClickListener(v -> {
+                RadioGroup radioGroup = popupView.findViewById(R.id.popupEventRadioGrp);
 
-                        int checkedRadioButtonId = radioGroup.getCheckedRadioButtonId();
+                int checkedRadioButtonId = radioGroup.getCheckedRadioButtonId();
 
-                        RadioButton selectedRadioButton = popupView.findViewById(checkedRadioButtonId);
+                RadioButton selectedRadioButton = popupView.findViewById(checkedRadioButtonId);
 
-                        if (selectedRadioButton != null) {
-                            String selectedText = selectedRadioButton.getText().toString();
-                            setDisplayedDay();
-                            if (selectedText.equals(getString(R.string.event))) {
-                                goToEventForm(displayedDay, "dEvent");
-                            } else if (selectedText.equals(getString(R.string.task))) {
-                                goToEventForm(displayedDay, "tEvent");
-                            }
-                        }
-                        popupWindow.dismiss();
+                if (selectedRadioButton != null) {
+                    String selectedText = selectedRadioButton.getText().toString();
+                    setDisplayedDay();
+                    if (selectedText.equals(getString(R.string.event))) {
+                        goToEventForm(displayedDay, "dEvent");
+                    } else if (selectedText.equals(getString(R.string.task))) {
+                        goToEventForm(displayedDay, "tEvent");
                     }
-                });
+                }
+                popupWindow.dismiss();
+            });
 
-            }
         });
     }
 
@@ -288,13 +279,10 @@ public class DayFragment extends Fragment {
     }
 
     private void initEventObserver() {
-        evm.getAllEventList().observe(getViewLifecycleOwner(), new Observer<List<GenericEvent>>() {
-            @Override
-            public void onChanged(List<GenericEvent> events) {
-                Log.d("DayFragment", "CHANGE");
-                binding.eventsContainer.removeAllViews();
-                addEventsToContainer(events, binding.eventsContainer);
-            }
+        evm.getAllEventList().observe(getViewLifecycleOwner(), events -> {
+            Log.d("DayFragment", "CHANGE");
+            binding.eventsContainer.removeAllViews();
+            addEventsToContainer(events, binding.eventsContainer);
         });
     }
 
@@ -314,7 +302,7 @@ public class DayFragment extends Fragment {
         Integer endHour = endDate.get(Calendar.HOUR_OF_DAY);
         Integer endMin = endDate.get(Calendar.MINUTE);
 
-        String res = String.format("%d " + startMonth + " %d %d:%d - %d " + endMonth + " %d %d:%d",
+        return String.format("%d " + startMonth + " %d %d:%d - %d " + endMonth + " %d %d:%d",
                 startDayOfMonth,
                 startYear,
                 startHour,
@@ -323,7 +311,6 @@ public class DayFragment extends Fragment {
                 endYear,
                 endHour,
                 endMin);
-        return res;
     }
 
 }

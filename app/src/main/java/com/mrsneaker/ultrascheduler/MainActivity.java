@@ -29,7 +29,6 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static AppDatabase database;
     private static Context appContext;
     private static final int PERMISSION_REQUEST_CODE = 1;
     private PermissionHelper permissionHelper;
@@ -83,18 +82,15 @@ public class MainActivity extends AppCompatActivity {
         checkExactAlarmPermission();
     }
 
+    private static final class DatabaseHolder {
+        static final AppDatabase database = Room.databaseBuilder(appContext,
+                        AppDatabase.class, "ultra-scheduler-db")
+                .fallbackToDestructiveMigration()
+                .build();
+    }
+
     public static AppDatabase getDatabase() {
-        if (database == null) {
-            synchronized (MainActivity.class) {
-                if (database == null) {
-                    database = Room.databaseBuilder(appContext,
-                                    AppDatabase.class, "ultra-scheduler-db")
-                            .fallbackToDestructiveMigration()
-                            .build();
-                }
-            }
-        }
-        return database;
+        return DatabaseHolder.database;
     }
 
     private void checkExactAlarmPermission() {
