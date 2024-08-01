@@ -9,11 +9,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.provider.CalendarContract;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -30,6 +29,8 @@ import com.mrsneaker.ultrascheduler.utils.DateUtils;
 import com.mrsneaker.ultrascheduler.viewmodel.EventViewModel;
 
 import java.util.Calendar;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -95,6 +96,32 @@ public class EventCardFragment extends Fragment {
         return binding.getRoot();
     }
 
+    private void initNotificationDisplay() {
+        TextView notificationsTextView = binding.notificationTextView;
+
+        StringBuilder finalDisplay = new StringBuilder();
+
+        for(Map.Entry<Long, Calendar> entry : currentEvent.getNotificationDate().entrySet()) {
+            if(entry.getValue() == currentEvent.getStartTime()) {
+                continue;
+            }
+            finalDisplay.append(getFormattedTimeDifference(currentEvent.getStartTime(), entry.getValue()));
+            finalDisplay.append(" before.\n");
+        }
+
+        notificationsTextView.setText(finalDisplay);
+    }
+
+    private String getFormattedTimeDifference(Calendar start, Calendar end) {
+        long diffInMillis = end.getTimeInMillis() - start.getTimeInMillis();
+
+        long diffMinutes = diffInMillis / (60 * 1000) % 60;
+        long diffHours = diffInMillis / (60 * 60 * 1000) % 24;
+        long diffDays = diffInMillis / (24 * 60 * 60 * 1000);
+
+        return String.format(Locale.getDefault(), "%d days, %d hours, %d minutes", diffDays, diffHours, diffMinutes);
+    }
+
     private void initBackButton() {
         ImageButton backBtn = binding.backArrowBtn;
         backBtn.setOnClickListener(view -> getParentFragmentManager().popBackStack());
@@ -128,6 +155,7 @@ public class EventCardFragment extends Fragment {
                 desc.setText(event1.getDescription());
                 sub.setText(event1.getSubject());
                 eventDate.setText(getEventDateString(event1));
+                initNotificationDisplay();
             }
         });
     }
@@ -138,11 +166,7 @@ public class EventCardFragment extends Fragment {
         popupMenu.setOnMenuItemClickListener(menuItem -> {
             int id = menuItem.getItemId();
             if(id == R.id.deleteCardOpt) {
-                if(currentEvent instanceof DetailedEvent)  {
-                    evm.deleteDetailedEvent((DetailedEvent) currentEvent);
-                } else {
-                    evm.deleteTaskEvent((TaskEvent) currentEvent);
-                }
+                evm.deleteEvent(currentEvent, requireContext());
                 getParentFragmentManager().popBackStack();
                 return true;
             } else if(id == R.id.duplicateCardOpt) {

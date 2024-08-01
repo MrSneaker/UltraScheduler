@@ -1,20 +1,19 @@
 package com.mrsneaker.ultrascheduler.model.event;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.mrsneaker.ultrascheduler.utils.NotificationHelper;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GenericEvent {
     private String subject;
     private Calendar startTime;
     private Calendar endTime;
     private String description;
-    private List<Calendar> notificationDate;
+    private Map<Long,Calendar> notificationDate;
     private boolean isAllDay;
 
     public GenericEvent(String subject, Calendar startTime, Calendar endTime, String description, boolean isAllDay) {
@@ -23,7 +22,7 @@ public class GenericEvent {
         this.endTime = endTime;
         this.description = description;
         this.isAllDay = isAllDay;
-        notificationDate = new ArrayList<>();
+        notificationDate = new HashMap<>();
     }
 
     public GenericEvent() {
@@ -32,8 +31,7 @@ public class GenericEvent {
         this.endTime = Calendar.getInstance();
         this.description = "";
         this.isAllDay = false;
-        notificationDate = new ArrayList<>();
-        notificationDate.add(startTime);
+        notificationDate = new HashMap<>();
     }
 
     public String getSubject() {
@@ -60,16 +58,17 @@ public class GenericEvent {
         this.endTime = endTime;
     }
 
-    public List<Calendar> getNotificationDate() {
+    public Map<Long, Calendar> getNotificationDate() {
         return notificationDate;
     }
 
-    public void setNotificationDate(List<Calendar> notificationDate) {
+    public void setNotificationDate(Map<Long, Calendar> notificationDate) {
         this.notificationDate = notificationDate;
     }
 
     public void addNotification(Calendar notification) {
-        this.notificationDate.add(notification);
+        long notifId = (long) (notification.getTimeInMillis() + Math.random() * System.currentTimeMillis());
+        this.notificationDate.put(notifId, notification);
     }
 
     public void setStartTime(Calendar startTime) {
@@ -88,10 +87,4 @@ public class GenericEvent {
         isAllDay = allDay;
     }
 
-    public void initNotificationSendEvent(Context context) {
-        NotificationHelper.scheduleNotification(context, startTime.getTimeInMillis(), subject, description);
-        for(Calendar notification : notificationDate) {
-            NotificationHelper.scheduleNotification(context, notification.getTimeInMillis(), subject, description);
-        }
-    }
 }

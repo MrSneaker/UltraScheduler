@@ -1,9 +1,13 @@
 package com.mrsneaker.ultrascheduler.viewmodel;
 
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.mrsneaker.ultrascheduler.MainActivity;
@@ -14,19 +18,23 @@ import com.mrsneaker.ultrascheduler.model.event.DetailedEvent;
 import com.mrsneaker.ultrascheduler.model.event.GenericEvent;
 import com.mrsneaker.ultrascheduler.model.event.TaskEvent;
 import com.mrsneaker.ultrascheduler.utils.DateUtils;
+import com.mrsneaker.ultrascheduler.utils.NotificationHelper;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
 public class EventViewModel extends ViewModel {
-    private DetailedEventDao detDao;
-    private TaskEventDao taskDao;
+    private final DetailedEventDao detDao;
+    private final TaskEventDao taskDao;
     private final MutableLiveData<List<GenericEvent>> allEventList;
     private final MutableLiveData<GenericEvent> currentEvent;
     private static EventViewModel evm;
+    private static final int BASE_NOTIFICATION = -30;
 
     private EventViewModel() {
         this.allEventList = new MutableLiveData<>();
@@ -69,46 +77,75 @@ public class EventViewModel extends ViewModel {
         return currentEvent;
     }
 
-    public void insertDetailedEvent(DetailedEvent e) {
+    public void insertDetailedEvent(DetailedEvent e, Context context) {
         new Thread(() -> {
+            Calendar baseNotif = (Calendar) e.getStartTime().clone();
+            baseNotif.add(Calendar.MINUTE,  BASE_NOTIFICATION);
+            e.addNotification(baseNotif);
+            initNotificationsSendEvent(context, e);
             detDao.insert(e);
             loadAllEvents();
         }).start();
     }
 
-    public void insertTaskEvent(TaskEvent e)  {
+    public void insertTaskEvent(TaskEvent e, Context context)  {
         new Thread(() -> {
+            Calendar baseNotif = (Calendar) e.getStartTime().clone();
+            baseNotif.add(Calendar.MINUTE,  BASE_NOTIFICATION);
+            e.addNotification(baseNotif);
+            initNotificationsSendEvent(context, e);
             taskDao.insert(e);
             loadAllEvents();
         }).start();
     }
 
-    public void updateDetailedEvent(DetailedEvent e) {
+    public void updateEvent(GenericEvent e, Context context) {
         new Thread(() -> {
-            detDao.update(e);
+            if(e instanceof DetailedEvent) {
+                detDao.update((DetailedEvent) e);
+            } else {
+                taskDao.update((TaskEvent) e);
+            }
+            updateAllNotifications(context, e);
             loadAllEvents();
         }).start();
     }
 
-    public void updateTaskEvent(TaskEvent e)  {
+    public void deleteEvent(GenericEvent e, Context context) {
         new Thread(() -> {
-            taskDao.update(e);
+            if(e instanceof DetailedEvent) {
+                detDao.delete((DetailedEvent) e);
+            } else  {
+                taskDao.delete((TaskEvent) e);
+            }
+            cancelAllNotifications(context, e);
             loadAllEvents();
         }).start();
     }
 
-    public void deleteDetailedEvent(DetailedEvent e) {
-        new Thread(() -> {
-            detDao.delete(e);
-            loadAllEvents();
-        }).start();
-    }
+    public void addNotification(long id, Calendar notif, Context context) {
+        Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    public void deleteTaskEvent(TaskEvent e) {
-        new Thread(() -> {
-            taskDao.delete(e);
-            loadAllEvents();
-        }).start();
+        mainHandler.post(() -> {
+            LiveData<GenericEvent> liveEvent = getEventById(id);
+            Observer<GenericEvent> observer = new Observer<GenericEvent>() {
+                @Override
+                public void onChanged(GenericEvent event) {
+                    if (event != null) {
+                        new Thread(() -> {
+                            event.addNotification(notif);
+                            initNotificationSendEvent(context, event, notif);
+                            updateEvent(event, context);
+                            loadAllEvents();
+                        }).start();
+                        liveEvent.removeObserver(this);
+                    } else {
+                        Log.e("EventViewModel", "Event not found with id: " + id);
+                    }
+                }
+            };
+            liveEvent.observeForever(observer);
+        });
     }
 
     private void loadDetailedEventById(long id) {
@@ -124,6 +161,44 @@ public class EventViewModel extends ViewModel {
             currentEvent.postValue(res);
         });
     }
+
+    private void initNotificationsSendEvent(Context context, GenericEvent e) {
+        String subject = e.getSubject();
+        String description = e.getDescription();
+        Log.d("EventViewModel", "1 subject = " + subject + " and desc is : " + description);
+        Calendar startTime = e.getStartTime();
+        e.addNotification(startTime);
+        Map<Long, Calendar> notifications = e.getNotificationDate();
+
+        for (Map.Entry<Long, Calendar> notifEntry : notifications.entrySet()) {
+            Calendar notification = notifEntry.getValue();
+            NotificationHelper.scheduleNotification(context, notification.getTimeInMillis(), subject, description, notifEntry.getKey());
+        }
+    }
+
+    private void initNotificationSendEvent(Context context, GenericEvent e, Calendar notif) {
+        String subject = e.getSubject();
+        String description = e.getDescription();
+        Log.d("EventViewModel", "2 subject = " + subject + " and desc is : " + description);
+        NotificationHelper.scheduleNotification(context, notif.getTimeInMillis(), subject, description, notif.getTimeInMillis());
+    }
+
+    private void cancelAllNotifications(Context context, GenericEvent e) {
+        Map<Long, Calendar> notifications = e.getNotificationDate();
+
+        for(Map.Entry<Long, Calendar> entry : notifications.entrySet()) {
+            NotificationHelper.cancelNotification(context, entry.getKey());
+        }
+    }
+
+    private void updateAllNotifications(Context context, GenericEvent e) {
+        Map<Long, Calendar> notifications = e.getNotificationDate();
+
+        for(Map.Entry<Long, Calendar> entry : notifications.entrySet()) {
+            NotificationHelper.updateNotification(context, entry.getValue().getTimeInMillis(), e.getSubject(), e.getSubject(), entry.getKey());
+        }
+    }
+
 
     public void loadAllEvents() {
         Executors.newSingleThreadExecutor().execute(() -> {

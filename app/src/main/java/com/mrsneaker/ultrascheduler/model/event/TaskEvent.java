@@ -5,12 +5,12 @@ import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
 import com.mrsneaker.ultrascheduler.utils.CalendarConverter;
-import com.mrsneaker.ultrascheduler.utils.CalendarListConverter;
+import com.mrsneaker.ultrascheduler.utils.CalendarMapConverter;
 
 import java.util.Calendar;
 
 @Entity(tableName = "task_event")
-@TypeConverters({CalendarConverter.class, CalendarListConverter.class})
+@TypeConverters({CalendarConverter.class, CalendarMapConverter.class})
 public class TaskEvent extends GenericEvent{
 
     @PrimaryKey

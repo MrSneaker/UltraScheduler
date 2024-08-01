@@ -9,8 +9,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
@@ -23,14 +21,15 @@ public class NotificationHelper {
     private static final String CHANNEL_NAME = "Ultra Scheduler";
     private static final String CHANNEL_DESC = "This channel is used for notifications";
 
-    public static void scheduleNotification(Context context, long timeInMillis, String title, String message) {
+    public static void scheduleNotification(Context context, long timeInMillis, String title, String message, long notificationId) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, NotificationReceiver.class);
         intent.putExtra("title", title);
         intent.putExtra("message", message);
+        intent.putExtra("notificationId", notificationId);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                context, (int) notificationId, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         try {
             alarmManager.setExact(AlarmManager.RTC, timeInMillis, pendingIntent);
@@ -42,8 +41,24 @@ public class NotificationHelper {
         editor.putLong("timeInMillis", timeInMillis);
         editor.putString("title", title);
         editor.putString("message", message);
+         editor.putLong("notificationId", notificationId);
         editor.apply();
     }
+
+    public static void cancelNotification(Context context, long notificationId) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, NotificationReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context, (int) notificationId, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        alarmManager.cancel(pendingIntent);
+    }
+
+    public static void updateNotification(Context context, long newTimeInMillis, String newTitle, String newMessage, long notificationId) {
+        cancelNotification(context, notificationId);
+        scheduleNotification(context, newTimeInMillis, newTitle, newMessage, notificationId);
+    }
+
 
     public static void createNotificationChannel(Context context) {
         NotificationChannel channel = new NotificationChannel(
@@ -58,6 +73,7 @@ public class NotificationHelper {
         public void onReceive(Context context, Intent intent) {
             String title = intent.getStringExtra("title");
             String message = intent.getStringExtra("message");
+            long notificationId = intent.getLongExtra("notificationId", 0);
 
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -67,7 +83,7 @@ public class NotificationHelper {
             stackBuilder.addNextIntent(notificationIntent);
 
             PendingIntent notificationPendingIntent = stackBuilder.getPendingIntent(
-                    0, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                    (int) notificationId, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_notification)
@@ -78,7 +94,7 @@ public class NotificationHelper {
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setAutoCancel(true);
 
-            notificationManager.notify((int) (System.currentTimeMillis() + (Math.random() * 100000)), builder.build());
+            notificationManager.notify((int) notificationId, builder.build());
         }
     }
 }

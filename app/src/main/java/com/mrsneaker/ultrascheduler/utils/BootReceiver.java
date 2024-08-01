@@ -15,9 +15,10 @@ public class BootReceiver extends BroadcastReceiver {
             long timeInMillis = prefs.getLong("timeInMillis", -1);
             String title = prefs.getString("title", "");
             String message = prefs.getString("message", "");
+            long notificationId = prefs.getLong("notificationId", 0);
 
             if (timeInMillis != -1 && !title.isEmpty() && !message.isEmpty()) {
-                NotificationHelper.scheduleNotification(context, timeInMillis, title, message);
+                NotificationHelper.scheduleNotification(context, timeInMillis, title, message, notificationId);
             }
         }
     }

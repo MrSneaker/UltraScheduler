@@ -8,16 +8,13 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.TimePicker;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.mrsneaker.ultrascheduler.databinding.FragmentEventFormBinding;
@@ -138,26 +135,19 @@ public class EventFormFragment extends Fragment {
         binding.saveEventBtn.setOnClickListener(view -> {
             EditText subject = binding.eventSubject;
             TextInputEditText desc = binding.eventDescriptionForm;
-            Calendar baseNotif = (Calendar) startCal.clone();
-            baseNotif.add(Calendar.MINUTE,  -30);
 
             switch (eventType) {
                 case "dEvent":
                     DetailedEvent detailedEvent = new DetailedEvent(subject.getText().toString(), startCal, endCal, Objects.requireNonNull(desc.getText()).toString(), isAllDay());
-                    detailedEvent.addNotification(baseNotif);
-                    detailedEvent.initNotificationSendEvent(requireContext());
-                    evm.insertDetailedEvent(detailedEvent);
+                    evm.insertDetailedEvent(detailedEvent, requireContext());
                     break;
                 case "tEvent":
                     TaskEvent taskEvent = new TaskEvent(subject.getText().toString(), startCal, Objects.requireNonNull(desc.getText()).toString(), isAllDay());
-                    taskEvent.addNotification(baseNotif);
-                    taskEvent.initNotificationSendEvent(requireContext());
-                    evm.insertTaskEvent(taskEvent);
+                    evm.insertTaskEvent(taskEvent, requireContext());
                     break;
                 default:
                     break;
             }
-
             FragmentManager fragmentManager = getParentFragmentManager();
             fragmentManager.popBackStack();
         });
@@ -165,20 +155,12 @@ public class EventFormFragment extends Fragment {
 
     private void initSaveButtonOnUpdate() {
         binding.saveEventBtn.setOnClickListener(view -> {
-
             EditText subject = binding.eventSubject;
             TextInputEditText desc = binding.eventDescriptionForm;
             currentEvent.setSubject(subject.getText().toString());
             currentEvent.setDescription(Objects.requireNonNull(desc.getText()).toString());
             currentEvent.setAllDay(isAllDay());
-
-            if(currentEvent  instanceof DetailedEvent) {
-                DetailedEvent detailedEvent = (DetailedEvent) currentEvent;
-                evm.updateDetailedEvent(detailedEvent);
-            } else {
-                TaskEvent taskEvent = (TaskEvent) currentEvent;
-                evm.updateTaskEvent(taskEvent);
-            }
+            evm.updateEvent(currentEvent, requireContext());
             FragmentManager fragmentManager = getParentFragmentManager();
             fragmentManager.popBackStack();
         });
